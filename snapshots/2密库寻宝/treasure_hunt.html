@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>密库寻宝</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{display:flex;justify-content:center;align-items:center;min-height:100vh;background:#120602;font-family:"STKaiti","KaiTi","PingFang SC",serif;overflow:hidden;touch-action:none;color:#f0d68a}
+#gameContainer{position:relative;width:min(100vw,420px);height:min(100vh,780px);overflow:hidden;background:#1a0a05;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+#videoLayer{width:min(100vw,420px);height:min(100vh,780px);display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,rgba(215,172,80,.18),transparent 34%),linear-gradient(180deg,#121018,#050608);box-shadow:0 18px 60px rgba(0,0,0,.48);text-align:center}#videoLayer.visible{display:flex}.videoCard{width:min(300px,calc(100% - 48px));padding:28px 22px;border:1px solid rgba(226,185,99,.5);border-radius:8px;background:rgba(10,12,18,.74);box-shadow:inset 0 0 24px rgba(226,185,99,.08)}.videoCard h2{margin-bottom:10px;color:#f2d083;font-family:"Songti SC","STSong",serif;font-size:24px}.videoCard p{color:rgba(255,255,255,.72);font-size:14px;line-height:1.8}
+.scene-bg{position:absolute;inset:0;background:url("./assets/bg/bg_shelf.png") center/cover no-repeat}
+.scene-bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,3,1,.16),rgba(8,3,1,.04) 42%,rgba(8,3,1,.22));pointer-events:none}
+.side-lantern{position:absolute;top:46px;width:74px;height:380px;object-fit:contain;z-index:3;pointer-events:none;filter:drop-shadow(0 10px 18px rgba(0,0,0,.48)) drop-shadow(0 0 14px rgba(255,91,48,.2));animation:lanternFloat 3.6s ease-in-out infinite}.side-lantern.left{left:-18px}.side-lantern.right{right:-18px;animation-delay:1.2s}@keyframes lanternFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.lantern-ad{position:absolute;top:195px;width:39px;min-height:55px;padding:5px 3px;border:1px solid rgba(244,202,111,.86);border-radius:6px;background:linear-gradient(180deg,rgba(255,239,169,.16),rgba(86,18,15,.78)),linear-gradient(135deg,#27150d,#681915 62%,#190b08);box-shadow:inset 0 0 0 1px rgba(120,70,25,.55),0 8px 16px rgba(0,0,0,.32);z-index:5;text-align:center;pointer-events:auto;text-decoration:none;cursor:pointer}.lantern-ad.left{left:12px}.lantern-ad.right{right:12px}.lantern-ad:disabled{filter:saturate(.3);opacity:.55;cursor:default}.lantern-ad .ad-pic{width:25px;height:25px;margin:0 auto 3px;border-radius:5px;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#fff0b8,#c94530 55%,#55100d);color:#fff0b8;font-size:15px;font-weight:900;font-family:"STKaiti","KaiTi",serif}.lantern-ad .ad-copy{display:block;color:#ffe39a;font-size:8px;line-height:1.15;font-weight:800}
+#header{position:absolute;top:0;left:0;width:100%;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;z-index:10;pointer-events:none}.titleBlock{padding-top:5px}.title-badge{font-size:17px;color:#f0d68a;text-shadow:0 0 10px rgba(240,214,138,.5);letter-spacing:2px}.story-line{margin-top:7px;width:206px;color:rgba(240,214,138,.76);font-size:12px;line-height:1.4;letter-spacing:.5px}.hudRight{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.timerPanel{position:relative;width:82px;height:92px;display:flex;align-items:center;justify-content:center}.timerPanel:before{content:"";position:absolute;inset:0;background:url("./assets/carriage/icon_1.png") center/contain no-repeat;filter:drop-shadow(0 8px 13px rgba(0,0,0,.46))}.timerPanel:after{content:"";position:absolute;width:39px;height:39px;left:50%;top:51.5%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(43,28,10,.74) 0%,rgba(12,9,8,.88) 68%,rgba(255,218,126,.18) 100%);box-shadow:inset 0 0 12px rgba(255,215,122,.18),0 0 12px rgba(255,194,83,.22)}.timerPanel.warning:after{background:radial-gradient(circle,rgba(70,11,9,.82) 0%,rgba(16,7,7,.9) 70%,rgba(255,63,53,.2) 100%);box-shadow:inset 0 0 12px rgba(255,105,90,.25),0 0 18px rgba(255,63,53,.34)}
+#timer{position:absolute;left:50%;top:51.5%;transform:translate(-50%,-50%);z-index:1;color:#ffd875;font-family:Georgia,"Times New Roman","PingFang SC",serif;font-size:30px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 2px 0 rgba(96,52,12,.72),0 0 12px rgba(255,216,117,.55),0 0 24px rgba(255,180,74,.3);transition:color .18s ease,text-shadow .18s ease,transform .18s ease}#timer.warning{color:#ff3f35;transform:translate(-50%,-50%) scale(1.08);text-shadow:0 2px 0 rgba(76,10,10,.78),0 0 12px rgba(255,63,53,.76),0 0 26px rgba(255,0,0,.46)}
+.progress-area{display:flex;align-items:center;gap:6px;padding-right:6px}.progress-dot{width:14px;height:14px;border-radius:50%;border:2px solid #f0d68a;background:rgba(25,10,5,.68);transition:all .35s ease}.progress-dot.found{background:#ff5b4b;border-color:#ff5b4b;box-shadow:0 0 9px rgba(255,91,75,.86)}
+.hint-bar{position:absolute;bottom:74px;left:50%;transform:translateX(-50%);width:min(348px,calc(100% - 34px));background:rgba(30,15,8,.82);border:1px solid rgba(240,214,138,.3);border-radius:8px;padding:8px 13px;color:#f0d68a;font-size:13px;line-height:1.35;text-align:center;z-index:10;pointer-events:none}
+.itemPrompt{position:absolute;left:50%;bottom:116px;transform:translateX(-50%);display:none;width:min(316px,calc(100% - 52px));padding:8px 12px;border:1px solid rgba(255,214,118,.58);border-radius:8px;background:rgba(83,22,16,.88);color:#ffe39a;font-size:12px;line-height:1.35;text-align:center;z-index:11;box-shadow:0 10px 22px rgba(0,0,0,.32)}.itemPrompt.visible{display:block}
+#viewport{position:absolute;top:93px;left:46px;right:46px;bottom:145px;overflow:hidden;cursor:default;touch-action:none;z-index:4}#shelfArea{position:absolute;top:0;left:0;width:100%;height:100%;padding:0 10px;will-change:transform}
+.shelf-row{position:absolute;left:10px;right:10px;height:62px;display:flex;flex-direction:column;align-items:center;transform:translateY(-100%)}.bottles-row{display:flex;justify-content:space-around;align-items:flex-end;width:100%;height:62px;padding:0 5px;margin-bottom:0}.shelf-board{display:none}
+.bottle{position:relative;width:43px;height:62px;border:0;background:transparent;padding:0;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;transform-origin:50% 92%;transition:transform .18s ease}.bottle:active{transform:scale(.94)}.bottle img{display:block;width:42px;height:auto;max-height:60px;object-fit:contain;pointer-events:none;user-select:none;filter:drop-shadow(0 6px 7px rgba(0,0,0,.38))}.bottle-red img{filter:saturate(1.16) brightness(1.07) drop-shadow(0 0 11px rgba(255,88,72,.5)) drop-shadow(0 6px 7px rgba(0,0,0,.38))}.bottle.found-target{animation:bottleFound .58s ease forwards}.bottle.found-target:before{content:"";position:absolute;left:3px;right:3px;top:1px;bottom:-1px;border:2px solid #ff5b4b;border-radius:10px;box-shadow:0 0 16px rgba(255,91,75,.9),inset 0 0 12px rgba(255,91,75,.24);animation:glowPulse 1.25s ease-in-out infinite;pointer-events:none}.bottle.wrong-tap{animation:wrongShake .36s ease}@keyframes bottleFound{0%{transform:scale(1)}35%{transform:scale(1.22) rotate(-5deg)}70%{transform:scale(1.12) rotate(3deg)}100%{transform:scale(1.05)}}@keyframes glowPulse{0%,100%{opacity:.78}50%{opacity:1}}@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+#footer{position:absolute;bottom:0;left:0;width:100%;height:72px;display:flex;justify-content:center;align-items:center;background:linear-gradient(0deg,rgba(22,8,4,.97),rgba(22,8,4,.76),transparent);z-index:8;pointer-events:none}.footer-text{color:rgba(240,214,138,.52);font-size:12px;letter-spacing:1px}
+.adOverlay{position:relative;width:100%;min-height:178px;margin:16px auto 10px;border:1px solid rgba(244,202,111,.9);border-radius:8px;background:radial-gradient(circle at 48% 28%,rgba(255,235,166,.32),transparent 26%),linear-gradient(135deg,#25160e 0%,#5c1715 48%,#170b09 100%);box-shadow:inset 0 0 0 2px rgba(119,70,25,.62),inset 0 0 28px rgba(0,0,0,.36),0 16px 30px rgba(0,0,0,.38);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}.adOverlay.closed{display:none}.adBadge{color:#ffd577;font-size:13px;font-weight:900;letter-spacing:2px;text-shadow:0 0 14px rgba(255,199,88,.36)}.adVisual{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;background:radial-gradient(circle at 50% 32%,#fff3b9,#c94530 55%,#4a100c);color:#fff0b8;font-size:34px;font-weight:900;border:1px solid rgba(255,224,150,.62);box-shadow:inset 0 0 16px rgba(0,0,0,.28)}.adText{width:min(220px,100%);margin:0;color:#f6d77c;font-size:13px;line-height:1.48;text-align:center}.adClose{position:absolute;top:8px;right:8px;width:28px;height:28px;border:1px solid rgba(255,224,150,.5);border-radius:50%;background:rgba(30,12,8,.78);color:#ffe6a0;font-size:18px;line-height:1;cursor:pointer}.resultActions{display:flex;flex-direction:column;align-items:center;gap:10px}.jdLink{display:none;align-items:center;justify-content:center;min-height:40px;margin:0 auto;padding:9px 16px;width:fit-content;max-width:100%;border:1px solid #f0c971;border-radius:8px;background:linear-gradient(180deg,rgba(255,237,169,.16),transparent 55%),linear-gradient(135deg,#7e1717,#3d0d0d);color:#ffe39a;font-size:14px;font-weight:900;text-decoration:none;box-shadow:0 10px 22px rgba(0,0,0,.34);pointer-events:auto}.jdLink.visible{display:inline-flex}.returnVideoLink{border-color:#ffe29b;background:linear-gradient(180deg,rgba(255,248,210,.45),rgba(255,216,117,.16) 54%),linear-gradient(135deg,#f3cf79,#b87924);color:#3d210c;text-shadow:0 1px 0 rgba(255,248,210,.58);box-shadow:0 10px 24px rgba(181,122,36,.34),inset 0 0 0 1px rgba(255,246,194,.42)}
+#startScreen,#victoryScreen,#failureScreen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;padding:34px;text-align:center;background:radial-gradient(circle at 50% 36%,rgba(190,126,50,.22),transparent 36%),linear-gradient(180deg,rgba(10,5,2,.88),rgba(10,5,2,.96))}#startScreen{background:radial-gradient(circle at 50% 42%,rgba(189,126,50,.24),transparent 42%),linear-gradient(180deg,rgba(20,11,7,.5),rgba(5,7,12,.76))}#victoryScreen,#failureScreen{display:none}.startScroll{position:relative;width:min(328px,calc(100vw - 44px));min-height:454px;padding:64px 34px 42px;color:#4b2817;background:radial-gradient(circle at 50% 18%,rgba(255,246,209,.82),transparent 38%),linear-gradient(90deg,rgba(127,78,35,.16),transparent 12%,transparent 88%,rgba(127,78,35,.16)),linear-gradient(180deg,#efe0bd 0%,#fbf0ce 18%,#ead6aa 100%);border:1px solid rgba(118,70,28,.52);border-radius:8px;box-shadow:inset 0 0 26px rgba(115,67,25,.18),inset 0 0 0 2px rgba(255,247,205,.38),0 22px 44px rgba(0,0,0,.42)}.startScroll:before,.startScroll:after{content:"";position:absolute;left:50%;width:calc(100% + 30px);height:28px;transform:translateX(-50%);border-radius:999px;background:linear-gradient(90deg,#4e2413 0%,#ba7b37 14%,#f3d17b 34%,#865021 62%,#3b1c10 100%);box-shadow:inset 0 3px 6px rgba(255,236,171,.36),inset 0 -5px 8px rgba(51,22,10,.46),0 6px 12px rgba(0,0,0,.28)}.startScroll:before{top:-14px}.startScroll:after{bottom:-14px}.scrollTexture{position:absolute;inset:28px 20px;pointer-events:none;opacity:.34;background:repeating-linear-gradient(98deg,rgba(86,47,20,.08) 0 1px,transparent 1px 14px),radial-gradient(circle at 20% 24%,rgba(117,67,25,.12),transparent 15%),radial-gradient(circle at 76% 72%,rgba(117,67,25,.1),transparent 18%)}.scrollTitle{position:relative;margin:0 0 28px;color:#4b2817;font-size:34px;line-height:1.1;letter-spacing:4px;text-shadow:0 1px 0 rgba(255,249,221,.72)}.missionText{position:relative;margin:0 auto;color:#5b2f18;font-size:18px;line-height:1.68;letter-spacing:1px;text-align:left}.missionText .timeLine{display:block;margin-top:14px;color:#9b261f;font-weight:700;text-align:center}.screen-panel{width:min(326px,100%);padding:46px 28px 36px;border:1px solid rgba(240,214,138,.34);border-radius:8px;background:linear-gradient(180deg,rgba(55,27,11,.76),rgba(20,8,4,.86));box-shadow:inset 0 0 28px rgba(240,214,138,.09),0 22px 48px rgba(0,0,0,.38)}.screen-title{font-size:32px;color:#f0d68a;text-shadow:0 0 20px rgba(240,214,138,.6);margin-bottom:12px;letter-spacing:4px}.screen-subtitle{font-size:15px;color:rgba(240,214,138,.78);margin-bottom:28px;letter-spacing:2px}.screen-desc{font-size:14px;color:rgba(240,214,138,.68);line-height:1.85}.start-btn{position:relative;margin-top:30px;padding:13px 42px;font-size:18px;font-family:"STKaiti","KaiTi",serif;background:linear-gradient(135deg,#8b6914 0%,#d4a030 50%,#8b6914 100%);color:#fff;border:1px solid rgba(240,214,138,.5);border-radius:8px;cursor:pointer;letter-spacing:3px;box-shadow:0 4px 15px rgba(139,105,20,.4)}.start-btn:active{transform:scale(.97)}.result-mark{width:70px;height:70px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(240,214,138,.5);font-size:36px;color:#ffd875;box-shadow:0 0 24px rgba(240,214,138,.18)}.failure .result-mark{color:#ff6d5e;border-color:rgba(255,109,94,.52);box-shadow:0 0 24px rgba(255,77,62,.18)}.victory-stats{color:rgba(240,214,138,.76);font-size:14px;line-height:1.8;margin-top:14px}
+#victoryScreen{background:radial-gradient(circle at 50% 28%,rgba(204,42,32,.16),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.68),rgba(0,0,0,.88))}
+#victoryScreen .screen-panel{position:relative;width:min(340px,calc(100vw - 36px));padding:70px 26px 34px;border:1px solid rgba(255,221,139,.72);border-radius:8px;background:radial-gradient(circle at 50% 12%,rgba(137,91,31,.22),transparent 26%),repeating-linear-gradient(135deg,rgba(255,232,165,.035) 0 1px,transparent 1px 9px),linear-gradient(180deg,#171310 0%,#050505 56%,#130f0c 100%);box-shadow:inset 0 0 0 2px rgba(106,70,24,.92),inset 0 0 0 5px rgba(8,6,5,.72),inset 0 0 38px rgba(226,166,74,.12),0 26px 58px rgba(0,0,0,.66)}
+#victoryScreen .screen-panel:before{content:"";position:absolute;inset:8px;border-radius:6px;background:url("./assets/icons/icon_12.png") center/100% 100% no-repeat;pointer-events:none;filter:drop-shadow(0 0 10px rgba(238,190,91,.28));opacity:.92}
+#victoryScreen .screen-panel:after{content:"";position:absolute;top:18px;left:50%;width:34px;height:34px;transform:translateX(-50%) rotate(45deg);border:2px solid #e8bd67;background:radial-gradient(circle at 50% 50%,#f1a39a 0 28%,#922b25 31% 48%,#2a0d0a 52%);box-shadow:0 0 16px rgba(236,185,93,.34),inset 0 0 8px rgba(255,239,180,.32)}
+#victoryScreen .result-mark{position:relative;z-index:1;width:58px;height:58px;margin-bottom:16px;border-color:rgba(239,194,100,.58);background:radial-gradient(circle,#32200e,#0b0806 70%);color:#f8d886;box-shadow:0 0 24px rgba(232,189,103,.24),inset 0 0 14px rgba(232,189,103,.12)}
+#victoryScreen .screen-title{position:relative;z-index:1;margin-bottom:10px;font-family:"STKaiti","KaiTi","Songti SC",serif;font-size:40px;line-height:1.06;letter-spacing:5px;color:#f5d782;background:linear-gradient(180deg,#fff4bd 0%,#f5d782 32%,#b97925 68%,#ffe6a0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 2px 0 rgba(65,35,8,.62),0 0 16px rgba(245,205,113,.38),0 10px 24px rgba(0,0,0,.52);filter:drop-shadow(0 1px 0 rgba(255,248,205,.32))}
+#victoryScreen .victory-stats,#victoryScreen .adOverlay,#victoryScreen .resultActions{position:relative;z-index:1}
+@media (max-height:650px){#header{padding-top:8px}.story-line{display:none}.hint-bar{bottom:60px}.itemPrompt{bottom:100px}#viewport{top:71px;bottom:127px;left:42px;right:42px}#footer{height:58px}.timerPanel{width:70px;height:78px}#timer{font-size:26px}.side-lantern{top:21px;width:66px;height:330px}.lantern-ad{top:161px;width:36px;min-height:51px}.lantern-ad.left{left:11px}.lantern-ad.right{right:11px}.lantern-ad .ad-pic{width:23px;height:23px;font-size:14px}.lantern-ad .ad-copy{font-size:8px}.bottle{height:56px}.bottle img{width:38px;max-height:54px}.adOverlay{min-height:150px;margin-top:12px}.adVisual{width:54px;height:54px;font-size:29px}}
+.roleScoreToast{position:fixed;top:18px;right:18px;z-index:220;display:none;min-width:188px;padding:10px 12px;border:1px solid rgba(240,214,138,.52);border-radius:8px;color:#ffe7a3;background:rgba(30,16,9,.92);box-shadow:0 10px 26px rgba(0,0,0,.4),inset 0 0 16px rgba(255,216,117,.08);font-size:13px;line-height:1.5;text-align:left}.roleScoreToast.visible{display:block}.roleScoreToast strong{color:#ffd875}
+</style>
+</head>
+<body>
+<div id="gameContainer">
+<div class="scene-bg"></div>
+<img class="side-lantern left" src="./assets/icons/lantern_left.png" alt="">
+<img class="side-lantern right" src="./assets/icons/lantern_right.PNG" alt="">
+<button class="lantern-ad left" id="snackItemBtn" type="button" onclick="useSnackItem()"><span class="ad-pic">食</span><span class="ad-copy">零食<br>补给</span></button>
+<button class="lantern-ad right" id="autoItemBtn" type="button" onclick="useAutoItem()"><span class="ad-pic">寻</span><span class="ad-copy">品牌<br>智选</span></button>
+<div id="header"><div class="titleBlock"><div class="title-badge">密库寻宝</div><div class="story-line">监察院密探已经逼近，请速速找出内库藏匿的异界神物。</div></div><div class="hudRight"><div class="timerPanel"><span id="timer">10</span></div><div class="progress-area"><div class="progress-dot" id="dot1"></div><div class="progress-dot" id="dot2"></div><div class="progress-dot" id="dot3"></div></div></div></div>
+<div class="hint-bar">点击三个 <span style="color:#ff6d5e">红色</span> 花瓶即可通关</div>
+<div class="itemPrompt" id="itemPrompt">误选瓶子！点击左侧零食补给，可抵消本次误选。</div>
+<div id="viewport"><div id="shelfArea"></div></div>
+<div id="footer"><div class="footer-text">影游共生 · 庆余年</div></div>
+<div id="startScreen"><div class="startScroll"><span class="scrollTexture"></span><h1 class="scrollTitle">密库寻宝</h1><p class="missionText">监察院密探已经逼近，请速速找出内库藏匿的异界神物（3个红色花瓶）<span class="timeLine">倒计时10秒钟。</span></p><button class="start-btn" onclick="startGame()">开始寻宝</button></div></div>
+<div id="victoryScreen"><div class="screen-panel"><div class="result-mark">✓</div><div class="screen-title">寻宝成功</div><div class="victory-stats" id="victoryStats"></div><div class="adOverlay" id="successAd"><div class="adBadge">京东好物</div><div class="adVisual">令</div><p class="adText">异界神物已现，即刻前往京东领取剧集同款好礼。</p></div><div class="resultActions"><a class="jdLink" id="successJdLink" href="../1马车游戏/jd_product.html">前往京东领取同款好礼</a><button class="jdLink returnVideoLink" id="returnVideoLink" type="button" onclick="returnToVideo()">返回主视频</button></div></div></div>
+<div id="failureScreen" class="failure"><div class="screen-panel"><div class="result-mark">!</div><div class="screen-title">密探逼近</div><div class="victory-stats" id="failureStats">十秒已尽，异界神物仍藏在密库深处。</div><div class="adOverlay" id="failureAd"><button class="adClose" type="button" onclick="closeFailureAd()" aria-label="关闭广告">×</button><div class="adBadge">京东好物</div><div class="adVisual">京</div><p class="adText">密库未破，补给先至。即刻前往京东选购剧集同款推荐。</p></div><a class="jdLink" id="failureJdLink" href="../1马车游戏/jd_product.html">前往京东购买补给</a><button class="start-btn" onclick="restartGame()">重新搜寻</button></div></div>
+<div class="roleScoreToast" id="roleScoreToast" aria-live="polite"></div>
+</div>
+<div id="videoLayer">
+<div class="videoCard"><h2>主视频播放中</h2><p>小游戏已关闭，已模拟返回剧集正片播放层。</p></div>
+</div>
+<script>
+const SHELF_ROWS=5,BOTTLES_PER_ROW=5,TARGET_COLOR='red',TARGET_COUNT=3,GAME_DURATION=10;
+const ROW_BOTTOMS=[18,33,48,63,78];
+const ROW_OFFSETS=[-10,-6,-4,0,0];
+const ASSET_ROOT='./assets/icons/potions/';
+const POTION_IMAGES={blue:ASSET_ROOT+'blue_potion.png',green:ASSET_ROOT+'green_potion.png',purple:ASSET_ROOT+'purple_potion.png',red:ASSET_ROOT+'red_potion.png'};
+const COLORS=['blue','green','purple','red'];
+const viewport=document.getElementById('viewport'),shelfArea=document.getElementById('shelfArea'),timerEl=document.getElementById('timer');
+let gameState='start',foundCount=0,tapCount=0,wrongCount=0,startTime=0,timerId=null,rewardLinkTimer=null,returnVideoTimer=null,failureLinkTimer=null,snackItemAvailable=true,pendingMistake=false,autoItemAvailable=true,promptTimer=null;
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function generateLayout(){
+    const positions=[];
+    for(let r=0;r<SHELF_ROWS;r++)for(let c=0;c<BOTTLES_PER_ROW;c++)positions.push({row:r,col:c});
+    for(let i=positions.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[positions[i],positions[j]]=[positions[j],positions[i]]}
+    const targets=positions.slice(0,TARGET_COUNT),nonTargets=COLORS.filter(x=>x!==TARGET_COLOR),grid=[];
+    for(let r=0;r<SHELF_ROWS;r++){
+        const row=[];
+        for(let c=0;c<BOTTLES_PER_ROW;c++){
+            const isTarget=targets.some(p=>p.row===r&&p.col===c);
+            row.push(isTarget?TARGET_COLOR:nonTargets[Math.floor(Math.random()*nonTargets.length)]);
+        }
+        grid.push(row);
+    }
+    let redCount=grid.flat().filter(color=>color===TARGET_COLOR).length;
+    for(let i=TARGET_COUNT;i<positions.length&&redCount<TARGET_COUNT;i++){
+        const p=positions[i];
+        if(grid[p.row][p.col]!==TARGET_COLOR){
+            grid[p.row][p.col]=TARGET_COLOR;
+            redCount++;
+        }
+    }
+    return grid;
+}
+function renderShelves(grid){
+    shelfArea.innerHTML='';
+    for(let r=0;r<SHELF_ROWS;r++){
+        const shelfRow=document.createElement('div');
+        shelfRow.className='shelf-row';
+        shelfRow.style.top=ROW_BOTTOMS[r]+'%';
+        shelfRow.style.marginTop=ROW_OFFSETS[r]+'px';
+        const bottlesRow=document.createElement('div');
+        bottlesRow.className='bottles-row';
+        for(let c=0;c<BOTTLES_PER_ROW;c++){
+            const color=grid[r][c],bottle=document.createElement('button');
+            bottle.type='button';
+            bottle.className='bottle bottle-'+color;
+            bottle.dataset.color=color;
+            bottle.setAttribute('aria-label',color==='red'?'红色花瓶':'花瓶');
+            bottle.innerHTML='<img src="'+POTION_IMAGES[color]+'" alt="">';
+            bottle.addEventListener('click',handleBottleTap);
+            bottlesRow.appendChild(bottle);
+        }
+        shelfRow.appendChild(bottlesRow);
+        const board=document.createElement('div');
+        board.className='shelf-board';
+        shelfRow.appendChild(board);
+        shelfArea.appendChild(shelfRow);
+    }
+}
+function handleBottleTap(e){
+    if(gameState!=='playing')return;
+    const bottle=e.currentTarget;
+    if(bottle.classList.contains('found-target'))return;
+    tapCount++;
+    if(bottle.dataset.color===TARGET_COLOR){
+        foundCount++;
+        bottle.classList.add('found-target');
+        bottle.disabled=true;
+        updateProgress();
+        if(foundCount>=TARGET_COUNT)setTimeout(showVictory,520);
+    }else{
+        wrongCount++;
+        pendingMistake=snackItemAvailable;
+        if(snackItemAvailable)showItemPrompt('误选瓶子！点击左侧零食补给，可抵消本次误选。');
+        bottle.classList.add('wrong-tap');
+        setTimeout(()=>bottle.classList.remove('wrong-tap'),380);
+    }
+}
+function showItemPrompt(text){
+    const prompt=document.getElementById('itemPrompt');
+    prompt.textContent=text;
+    prompt.classList.add('visible');
+    if(promptTimer)clearTimeout(promptTimer);
+    promptTimer=setTimeout(()=>prompt.classList.remove('visible'),3200);
+}
+function hideItemPrompt(){
+    if(promptTimer)clearTimeout(promptTimer);
+    promptTimer=null;
+    document.getElementById('itemPrompt').classList.remove('visible');
+}
+function useSnackItem(){
+    if(gameState!=='playing'||!snackItemAvailable)return;
+    if(!pendingMistake){showItemPrompt('零食补给会在误选后生效。');return}
+    wrongCount=Math.max(0,wrongCount-1);
+    pendingMistake=false;
+    snackItemAvailable=false;
+    document.getElementById('snackItemBtn').disabled=true;
+    showItemPrompt('体力已恢复，本次误选不计入记录。');
+}
+function useAutoItem(){
+    if(gameState!=='playing'||!autoItemAvailable)return;
+    autoItemAvailable=false;
+    document.getElementById('autoItemBtn').disabled=true;
+    document.querySelectorAll('.bottle-red').forEach(bottle=>{
+        if(!bottle.classList.contains('found-target')){
+            bottle.classList.add('found-target');
+            bottle.disabled=true;
+        }
+    });
+    foundCount=TARGET_COUNT;
+    updateProgress();
+    hideItemPrompt();
+    setTimeout(showVictory,520);
+}
+function updateProgress(){for(let i=1;i<=TARGET_COUNT;i++)document.getElementById('dot'+i).classList.toggle('found',i<=foundCount)}
+function updateTimer(){
+    if(gameState!=='playing')return;
+    const elapsed=(Date.now()-startTime)/1000,timeLeft=Math.max(0,Math.ceil(GAME_DURATION-elapsed)),warning=timeLeft>0&&timeLeft<=3;
+    timerEl.textContent=String(timeLeft);
+    timerEl.classList.toggle('warning',warning);
+    timerEl.parentElement.classList.toggle('warning',warning);
+    if(elapsed>=GAME_DURATION)showFailure();
+}
+function clearTimer(){if(timerId)clearInterval(timerId);timerId=null}
+function clearAdTimers(){if(rewardLinkTimer)clearTimeout(rewardLinkTimer);if(returnVideoTimer)clearTimeout(returnVideoTimer);if(failureLinkTimer)clearTimeout(failureLinkTimer);rewardLinkTimer=null;returnVideoTimer=null;failureLinkTimer=null}
+function showRoleScoreToast(isSuccess){const role=localStorage.getItem('qingyunianSelectedRole')||'所选角色',added=isSuccess?5:2,total=Math.floor(Math.random()*8001)+2000,toast=document.getElementById('roleScoreToast');toast.innerHTML='为<strong>'+role+'</strong>加了<strong>'+added+'</strong>分<br>现在全服总分是：<strong>'+total+'</strong>';toast.classList.add('visible')}
+function showVictory(){
+    if(gameState!=='playing')return;
+    gameState='victory';
+    clearTimer();
+    const elapsed=Math.min(GAME_DURATION,(Date.now()-startTime)/1000).toFixed(1);
+    const mistakeText=wrongCount>0?' · 误选 '+wrongCount+' 次':'';
+    document.getElementById('victoryStats').textContent='用时 '+elapsed+' 秒 · 点击 '+tapCount+' 次'+mistakeText;
+    showRoleScoreToast(true);
+    document.getElementById('victoryScreen').style.display='flex';
+    rewardLinkTimer=setTimeout(()=>document.getElementById('successJdLink').classList.add('visible'),1000);
+    returnVideoTimer=setTimeout(()=>document.getElementById('returnVideoLink').classList.add('visible'),3000);
+}
+function showFailure(){
+    if(gameState!=='playing')return;
+    gameState='failure';
+    clearTimer();
+    timerEl.textContent='0';
+    timerEl.classList.add('warning');
+    timerEl.parentElement.classList.add('warning');
+    document.getElementById('failureStats').textContent='找到 '+foundCount+' / '+TARGET_COUNT+' 个红色花瓶，十秒已尽。';
+    showRoleScoreToast(false);
+    document.getElementById('failureScreen').style.display='flex';
+    failureLinkTimer=setTimeout(()=>document.getElementById('failureJdLink').classList.add('visible'),3000);
+}
+function closeFailureAd(){document.getElementById('failureAd').classList.add('closed')}
+function returnToVideo(){
+    if(window.stopInteractiveBgm)window.stopInteractiveBgm();
+    window.location.assign('../../character-selection-dialogue-new.html');
+}
+function startGame(){
+    gameState='playing';
+    clearAdTimers();
+    foundCount=0;
+    tapCount=0;
+    wrongCount=0;
+    snackItemAvailable=true;
+    pendingMistake=false;
+    autoItemAvailable=true;
+    startTime=Date.now();
+    clearTimer();
+    timerEl.textContent=String(GAME_DURATION);
+    timerEl.classList.remove('warning');
+    timerEl.parentElement.classList.remove('warning');
+    updateProgress();
+    renderShelves(generateLayout());
+    document.getElementById('startScreen').style.display='none';
+    document.getElementById('victoryScreen').style.display='none';
+    document.getElementById('failureScreen').style.display='none';
+    document.getElementById('roleScoreToast').classList.remove('visible');
+    document.getElementById('successJdLink').classList.remove('visible');
+    document.getElementById('returnVideoLink').classList.remove('visible');
+    document.getElementById('failureJdLink').classList.remove('visible');
+    document.getElementById('failureAd').classList.remove('closed');
+    document.getElementById('gameContainer').style.display='block';
+    document.getElementById('videoLayer').classList.remove('visible');
+    document.getElementById('snackItemBtn').disabled=false;
+    document.getElementById('autoItemBtn').disabled=false;
+    hideItemPrompt();
+    timerId=setInterval(updateTimer,120);
+    updateTimer();
+}
+function restartGame(){startGame()}
+document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+</script>
+<script>
+(function(){
+    const bgm=new Audio('../../demosource2-assets/bgm.mp3');
+    bgm.loop=true;
+    bgm.volume=0;
+    let started=false,frame=null;
+    function fadeIn(){
+        if(frame)cancelAnimationFrame(frame);
+        const targetVolume=.36,duration=1800,start=performance.now();
+        function step(now){
+            const progress=Math.min(1,(now-start)/duration);
+            bgm.volume=targetVolume*progress;
+            if(progress<1)frame=requestAnimationFrame(step);
+        }
+        frame=requestAnimationFrame(step);
+    }
+    function startBgm(){
+        if(started)return;
+        started=true;
+        bgm.play().then(fadeIn).catch(()=>{started=false});
+    }
+    window.stopInteractiveBgm=function(){
+        if(frame)cancelAnimationFrame(frame);
+        bgm.pause();
+        bgm.currentTime=0;
+    };
+    window.addEventListener('load',startBgm);
+    document.addEventListener('pointerdown',startBgm,{once:true});
+    document.addEventListener('keydown',startBgm,{once:true});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>京东商品购买页</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100svh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        background: #f4f4f4;
+        color: #1f1f1f;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100%, 430px);
+        min-height: 100svh;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .topbar {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: max(6px, env(safe-area-inset-top)) 14px 6px;
+        color: #fff;
+        background: linear-gradient(135deg, #e2231a, #b80f0a);
+        font-weight: 800;
+      }
+
+      .back-btn {
+        width: 34px;
+        height: 34px;
+        border: 0;
+        border-radius: 50%;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        background: #fff;
+        color: #e2231a;
+        font-weight: 900;
+      }
+
+      .hero {
+        padding: 20px 18px 16px;
+        text-align: center;
+        background:
+          radial-gradient(circle at 50% 22%, rgba(255, 226, 174, 0.88), transparent 40%),
+          linear-gradient(180deg, #fff7eb, #fff);
+      }
+
+      .product-image {
+        width: 198px;
+        height: 198px;
+        margin: 0 auto 14px;
+        border-radius: 18px;
+        border: 1px solid #f0d6a0;
+        display: grid;
+        place-items: center;
+        color: #f7d878;
+        background:
+          radial-gradient(circle at 50% 34%, rgba(255, 235, 170, 0.78), transparent 34%),
+          linear-gradient(145deg, #15342e, #071715);
+        box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.24), 0 12px 28px rgba(0, 0, 0, 0.12);
+        font-family: "STKaiti", "KaiTi", serif;
+        font-size: 58px;
+        font-weight: 900;
+      }
+
+      .badge {
+        display: inline-block;
+        margin-bottom: 8px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        color: #d71f16;
+        background: #fff1e8;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 21px;
+        line-height: 1.35;
+      }
+
+      .desc {
+        margin: 0 auto;
+        max-width: 310px;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .price-box {
+        padding: 16px 18px;
+        border-top: 1px solid #f2f2f2;
+        border-bottom: 1px solid #f2f2f2;
+      }
+
+      .price {
+        color: #e2231a;
+        font-size: 34px;
+        font-weight: 900;
+      }
+
+      .price small {
+        font-size: 18px;
+      }
+
+      .coupon {
+        margin-top: 10px;
+        padding: 11px 12px;
+        border-radius: 8px;
+        color: #b01813;
+        background: #fff4ef;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .section {
+        padding: 16px 18px;
+        border-bottom: 8px solid #f5f5f5;
+      }
+
+      .section h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      .section p {
+        margin: 0;
+        color: #444;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .buy-bar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        gap: 10px;
+        padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      .cart-btn,
+      .buy-btn {
+        min-height: 48px;
+        border-radius: 999px;
+        font-weight: 900;
+      }
+
+      .cart-btn {
+        width: 112px;
+        border: 1px solid #ffd0a6;
+        color: #c51a12;
+        background: #fff6ed;
+      }
+
+      .buy-btn {
+        flex: 1;
+        border: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #ff533f, #d81711);
+        font-size: 17px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone">
+      <header class="topbar">
+        <button class="back-btn" type="button" aria-label="返回">‹</button>
+        <div class="logo">京</div>
+        <div>京东 · 剧集互动好物</div>
+      </header>
+
+      <section class="hero">
+        <div class="product-image" id="productImage">茶</div>
+        <span class="badge">互动开奖专享</span>
+        <h1 id="productTitle">春山茉莉轻乳茶 6 瓶装</h1>
+        <p class="desc" id="productDesc">清爽茉莉茶香搭配轻乳口感，适合作为追剧补给。</p>
+      </section>
+
+      <section class="price-box">
+        <div class="price"><small>¥</small><span id="productPrice">39.9</span></div>
+        <div class="coupon" id="productCoupon">已获得锦盒专属优惠券：立减 8 元</div>
+      </section>
+
+      <section class="section">
+        <h2>商品亮点</h2>
+        <p id="productHighlights">低糖轻负担、茉莉茶香、冷藏风味更佳。页面为原型内绘制的京东商品购买 UI。</p>
+      </section>
+
+      <section class="section">
+        <h2>配送与服务</h2>
+        <p>京东快递配送 · 支持优惠券自动抵扣 · 当前为本地交互原型，不会发起真实购买。</p>
+      </section>
+
+      <div class="buy-bar">
+        <button class="cart-btn" type="button">加入购物车</button>
+        <button class="buy-btn" type="button">立即购买</button>
+      </div>
+    </main>
+
+    <script>
+      const products = {
+        tea: {
+          mark: "茶",
+          title: "春山茉莉轻乳茶 6 瓶装",
+          desc: "清爽茉莉茶香搭配轻乳口感，适合作为追剧补给。",
+          price: "39.9",
+          coupon: "已获得锦盒专属优惠券：立减 8 元",
+          highlights: "低糖轻负担、茉莉茶香、冷藏风味更佳。页面为原型内绘制的京东商品购买 UI。",
+        },
+        badge: {
+          mark: "徽",
+          title: "《影游共生》联名徽章立牌套装",
+          desc: "剧集限定视觉周边，含角色徽章、桌面立牌与收藏卡。",
+          price: "69.0",
+          coupon: "已获得锦盒专属优惠券：立减 15 元",
+          highlights: "金属徽章质感、亚克力立牌、限定收藏卡。适合粉丝收藏与桌搭展示。",
+        },
+      };
+
+      const item = new URLSearchParams(window.location.search).get("item");
+      const product = products[item] || products.tea;
+
+      document.querySelector("#productImage").textContent = product.mark;
+      document.querySelector("#productTitle").textContent = product.title;
+      document.querySelector("#productDesc").textContent = product.desc;
+      document.querySelector("#productPrice").textContent = product.price;
+      document.querySelector("#productCoupon").textContent = product.coupon;
+      document.querySelector("#productHighlights").textContent = product.highlights;
+
+      document.querySelector(".back-btn").addEventListener("click", () => {
+        window.location.href = "./index.html";
+      });
+    </script>
+  </body>
+</html>

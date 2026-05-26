@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>京东商品购买页</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(202, 35, 35, 0.24), transparent 36%),
+                linear-gradient(180deg, #250b0b 0%, #090707 100%);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #fff;
+        }
+
+        .phone {
+            width: min(390px, 100%);
+            min-height: 640px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #fff;
+            color: #1f1f1f;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+        }
+
+        .backBtn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 30;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 255, 255, 0.56);
+            border-radius: 50%;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)),
+                rgba(80, 10, 8, 0.78);
+            color: #fff;
+            font-size: 30px;
+            line-height: 36px;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+            backdrop-filter: blur(8px);
+        }
+
+        .topbar {
+            height: 58px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 18px;
+            background: linear-gradient(135deg, #e2231a, #b80f0a);
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            color: #e2231a;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .productHero {
+            padding: 22px 20px 16px;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(255, 231, 190, 0.95), transparent 42%),
+                linear-gradient(180deg, #fff8ed, #fff);
+            text-align: center;
+        }
+
+        .productImage {
+            width: 188px;
+            height: 188px;
+            margin: 0 auto 14px;
+            border-radius: 18px;
+            border: 1px solid #f0d6a0;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(255, 233, 176, 0.88), transparent 43%),
+                linear-gradient(145deg, #132e2a, #071715);
+            display: grid;
+            place-items: center;
+            color: #f7d878;
+            font-family: "STKaiti", "KaiTi", serif;
+            font-size: 54px;
+            font-weight: 900;
+            box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.22);
+        }
+
+        .badge {
+            display: inline-block;
+            margin-bottom: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #fff1e8;
+            color: #d71f16;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        h1 {
+            font-size: 20px;
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+
+        .desc {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .priceBox {
+            padding: 16px 20px;
+            border-top: 1px solid #f2f2f2;
+            border-bottom: 1px solid #f2f2f2;
+            background: #fff;
+        }
+
+        .price {
+            color: #e2231a;
+            font-size: 34px;
+            font-weight: 900;
+        }
+
+        .price small {
+            font-size: 18px;
+        }
+
+        .coupon {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #fff4ef;
+            color: #b01813;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .details {
+            padding: 16px 20px 92px;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.9;
+        }
+
+        .buyBar {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            width: min(390px, calc(100% - 48px));
+            transform: translateX(-50%);
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 18px;
+            box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+            display: flex;
+            gap: 10px;
+        }
+
+        .buyBtn {
+            flex: 1;
+            min-height: 48px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff533f, #d81711);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .cartBtn {
+            width: 108px;
+            min-height: 48px;
+            border: 1px solid #ffd0a6;
+            border-radius: 999px;
+            background: #fff6ed;
+            color: #c51a12;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body>
+    <button class="backBtn" type="button" onclick="goBackToGame()" aria-label="返回">‹</button>
+    <main class="phone">
+        <div class="topbar">
+            <div class="logo">京</div>
+            <div>京东 · 剧集互动好物</div>
+        </div>
+        <section class="productHero">
+            <div class="productImage">薯</div>
+            <span class="badge">互动广告通关专享</span>
+            <h1>京东精选休闲薯片组合装</h1>
+            <p class="desc">追剧补给快消好物，香脆零食组合。后续可替换为真实京东商品链接。</p>
+        </section>
+        <section class="priceBox">
+            <div class="price"><small>¥</small>29.9</div>
+            <div class="coupon">已获得互动小游戏专属优惠券：立减 5 元</div>
+        </section>
+        <section class="details">
+            <p>商品亮点：多口味薯片组合、独立小包装、适合追剧观影场景。</p>
+            <p>广告接入说明：当前页面为本地可点击快消品占位页，正式投放时把游戏里的链接替换为真实京东商品落地页即可。</p>
+        </section>
+    </main>
+    <div class="buyBar">
+        <button class="cartBtn">加入购物车</button>
+        <button class="buyBtn">立即购买</button>
+    </div>
+    <script>
+        function goBackToGame() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = 'escort_game.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>庆余年 - 异界商号</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', 'Noto Serif SC', serif;
+            overflow: hidden;
+            touch-action: none;
+            background: #0a0a0a;
+        }
+        
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, #1a1510 0%, #2a1f15 50%, #1a1510 100%);
+        }
+        
+        .bg-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, #d4af37 10px, #d4af37 11px),
+                repeating-linear-gradient(-45deg, transparent, transparent 10px, #d4af37 10px, #d4af37 11px);
+        }
+        
+        .scroll-container {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .scroll {
+            background: linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 50%, #f5e6c8 100%);
+            padding: 20px 30px;
+            border-radius: 5px;
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.5),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            position: relative;
+            border-left: 8px solid #8b4513;
+            border-right: 8px solid #8b4513;
+        }
+        
+        .scroll::before,
+        .scroll::after {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 15px;
+            background: linear-gradient(90deg, #5c3317, #8b4513, #5c3317);
+            left: -10%;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        
+        .scroll::before {
+            top: -8px;
+        }
+        
+        .scroll::after {
+            bottom: -8px;
+        }
+        
+        .scroll-text {
+            color: #3d2914;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+        
+        #game-canvas {
+            position: absolute;
+            top: 52%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+        
+        .timer-display {
+            position: absolute;
+            top: 32%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd700;
+            font-size: 36px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            z-index: 15;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .timer-display.warning {
+            color: #ff4444;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.1); }
+        }
+        
+        .instruction {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d4af37;
+            font-size: 14px;
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .progress-container {
+            position: absolute;
+            bottom: 14%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 280px;
+            height: 20px;
+            background: rgba(0,0,0,0.6);
+            border: 3px solid #8b6914;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b8860b, #ffd700, #ffec8b);
+            transition: width 0.1s;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        
+        .treasure-display {
+            position: absolute;
+            top: 22%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 8;
+            text-align: center;
+        }
+        
+        .treasure-item {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 
+                0 0 20px rgba(212, 175, 55, 0.3),
+                inset 0 0 20px rgba(212, 175, 55, 0.1);
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.6), inset 0 0 30px rgba(212, 175, 55, 0.2); }
+        }
+        
+        .treasure-label {
+            color: #d4af37;
+            font-size: 12px;
+            margin-top: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .logo-placeholder {
+            position: absolute;
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            color: rgba(212, 175, 55, 0.4);
+            font-size: 12px;
+            border: 1px dashed rgba(212, 175, 55, 0.3);
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .overlay.show {
+            display: flex;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .result-title {
+            font-size: 32px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .result-subtitle {
+            font-size: 16px;
+            color: #e8d4a8;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.8;
+            max-width: 80%;
+        }
+        
+        .btn {
+            background: linear-gradient(180deg, #d4af37 0%, #b8860b 50%, #8b6914 100%);
+            color: #1a1510;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 
+                0 4px 15px rgba(212, 175, 55, 0.4),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: all 0.3s;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .btn:hover, .btn:active {
+            transform: scale(0.95);
+            box-shadow: 
+                0 2px 10px rgba(212, 175, 55, 0.3),
+                inset 0 2px 4px rgba(255,255,255,0.2);
+        }
+        
+        .ad-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 72px 20px 28px;
+            overflow-y: auto;
+        }
+        
+        .ad-page.show {
+            display: flex;
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        .ad-page .result-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .ad-page .result-subtitle {
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+
+        .result-back-btn {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 215, 0, 0.45);
+            border-radius: 50%;
+            background: rgba(0,0,0,0.35);
+            color: #ffd700;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+        }
+
+        .role-score-toast {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 130;
+            display: none;
+            min-width: 188px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 215, 0, 0.48);
+            border-radius: 8px;
+            color: #ffe7a3;
+            background: rgba(20, 12, 22, 0.92);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), inset 0 0 16px rgba(255, 216, 117, 0.08);
+            font-size: 13px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .role-score-toast.visible {
+            display: block;
+        }
+
+        .role-score-toast strong {
+            color: #ffd875;
+        }
+
+        .result-body {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .ad-product {
+            width: min(58vw, 210px);
+            height: min(64vh, 330px);
+            min-height: 260px;
+            background: url('../../demosource2-assets/icons/icon_5.png') center / contain no-repeat;
+            border: none;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .ad-art-content {
+            width: 72%;
+            height: 68%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #4a2b12;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .ad-badge {
+            border: 1px solid rgba(125, 65, 20, 0.5);
+            color: #8a3417;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 4px 8px;
+            margin-bottom: 14px;
+        }
+
+        .coupon-display {
+            position: relative;
+            width: min(82vw, 310px);
+            min-height: 178px;
+            margin: 10px 0 26px;
+            padding: 22px 24px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff1c6 0%, #ffd36b 48%, #f45b3f 100%);
+            color: #5a210e;
+            text-align: center;
+            box-shadow: 0 18px 42px rgba(0,0,0,0.45), 0 0 36px rgba(255, 215, 0, 0.32);
+            overflow: hidden;
+        }
+
+        .coupon-display::before,
+        .coupon-display::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #121212;
+            transform: translateY(-50%);
+        }
+
+        .coupon-display::before { left: -14px; }
+        .coupon-display::after { right: -14px; }
+
+        .coupon-label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+
+        .coupon-value {
+            font-size: 48px;
+            line-height: 1;
+            font-weight: 700;
+            color: #b3120b;
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .coupon-value span {
+            font-size: 18px;
+            margin-left: 4px;
+        }
+
+        .coupon-desc {
+            margin-top: 12px;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .result-actions {
+            width: min(88vw, 340px);
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .result-actions .btn {
+            flex: 1;
+            min-width: 0;
+            padding: 14px 10px;
+            font-size: 16px;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, #f5e6c8 0%, #d7b978 100%);
+        }
+
+        .btn-plain {
+            color: #ffd700;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            box-shadow: none;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .ad-title {
+            font-size: 24px;
+            color: #5a2b12;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .ad-desc {
+            font-size: 14px;
+            color: #6b3a19;
+            text-align: center;
+            max-width: 150px;
+            line-height: 1.6;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: particleFloat 8s infinite;
+        }
+        
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .press-effect {
+            position: absolute;
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pressRipple 0.6s ease-out forwards;
+        }
+        
+        @keyframes pressRipple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 50% 22%, rgba(255, 215, 0, 0.18), transparent 28%),
+                radial-gradient(circle at 20% 80%, rgba(152, 75, 28, 0.28), transparent 32%),
+                linear-gradient(180deg, #120d0a 0%, #2b1c10 56%, #0f0d0a 100%);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 24px;
+            overflow: hidden;
+        }
+
+        .start-screen::before {
+            content: '';
+            position: absolute;
+            width: min(118vw, 520px);
+            height: min(118vw, 520px);
+            border: 1px solid rgba(255, 215, 0, 0.16);
+            border-radius: 50%;
+            background:
+                repeating-conic-gradient(from -18deg, rgba(255, 215, 0, 0.16) 0deg 2deg, transparent 2deg 12deg),
+                radial-gradient(circle, transparent 0 55%, rgba(255, 215, 0, 0.08) 56%, transparent 58%);
+            opacity: 0.9;
+            animation: startDialRotate 24s linear infinite;
+        }
+
+        .start-screen::after {
+            content: '';
+            position: absolute;
+            inset: 18px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            pointer-events: none;
+        }
+        
+        .start-screen.hide {
+            display: none;
+        }
+
+        .start-content {
+            position: relative;
+            z-index: 2;
+            width: min(88vw, 360px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .game-title {
+            font-size: 44px;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .game-subtitle {
+            font-size: 15px;
+            color: #e8d4a8;
+            margin-bottom: 28px;
+            letter-spacing: 4px;
+        }
+        
+        .decoration {
+            width: 118px;
+            height: 118px;
+            margin-bottom: 30px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 215, 0, 0.72);
+            background:
+                conic-gradient(from 298deg, transparent 0deg 250deg, rgba(255, 215, 0, 0.92) 250deg 304deg, transparent 304deg 360deg),
+                radial-gradient(circle, #2a1f15 0 48%, #15100b 49% 100%);
+            box-shadow:
+                0 0 34px rgba(255, 215, 0, 0.28),
+                inset 0 0 24px rgba(0, 0, 0, 0.42);
+            position: relative;
+        }
+
+        .decoration::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 46%;
+            height: 3px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #fff8dc, #e32218);
+            transform-origin: left center;
+            transform: rotate(-24deg);
+            box-shadow: 0 0 10px rgba(255, 248, 220, 0.7);
+        }
+
+        .decoration::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffd700;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 16px rgba(255, 215, 0, 0.72);
+        }
+
+        .start-guide {
+            width: 100%;
+            margin-bottom: 26px;
+            padding: 16px 18px;
+            border: 1px solid rgba(212, 175, 55, 0.44);
+            border-radius: 8px;
+            background: rgba(10, 8, 6, 0.56);
+            color: #f2dfb5;
+            text-align: center;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(6px);
+        }
+
+        .guide-label {
+            font-size: 12px;
+            color: #ffd700;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .guide-text {
+            font-size: 15px;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .start-screen .btn {
+            width: min(72vw, 236px);
+            padding: 15px 24px;
+            border-radius: 6px;
+            letter-spacing: 3px;
+        }
+
+        @keyframes startDialRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-height: 640px) {
+            .decoration {
+                width: 96px;
+                height: 96px;
+                margin-bottom: 18px;
+            }
+
+            .game-title {
+                font-size: 38px;
+            }
+
+            .game-subtitle {
+                margin-bottom: 18px;
+            }
+
+            .start-guide {
+                margin-bottom: 18px;
+                padding: 13px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="bg-pattern"></div>
+        
+        <div class="particles" id="particles"></div>
+        
+        <div class="start-screen" id="start-screen">
+            <div class="start-content">
+                <div class="decoration" aria-hidden="true"></div>
+                <div class="game-title">时空议价</div>
+                <div class="game-subtitle">庆余年 · 异界商号</div>
+                <div class="start-guide">
+                    <div class="guide-label">玩法</div>
+                    <div class="guide-text">长按屏幕控制指针，尽量稳定停留在金色区域。</div>
+                </div>
+                <button class="btn" id="start-btn">开始交易</button>
+            </div>
+        </div>
+        
+        <div class="scroll-container">
+            <div class="scroll">
+                <div class="scroll-text">此番商战，需以最稳妥的价格拿下异界神物</div>
+            </div>
+        </div>
+        
+        <div class="treasure-display">
+            <div class="treasure-item" id="treasure">💎</div>
+            <div class="treasure-label">异界秘宝</div>
+        </div>
+        
+        <div class="timer-display" id="timer-display">10</div>
+        
+        <canvas id="game-canvas"></canvas>
+        
+        <div class="instruction" id="instruction">长按屏幕，控制指针稳定在金色区域</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="logo-placeholder">品牌 LOGO</div>
+        
+        <div class="ad-page" id="ad-page">
+            <button class="result-back-btn" id="top-return-btn" type="button" aria-label="返回主视频">‹</button>
+            <div class="result-body">
+                <div class="result-title" id="ad-result-title">✨ 交易成功 ✨</div>
+                <div class="result-subtitle" id="ad-result-subtitle">异界商号已将秘宝收入囊中</div>
+                <div class="coupon-display" id="coupon-display">
+                    <div class="coupon-label">京东互动专属券</div>
+                    <div class="coupon-value">¥30<span>优惠券</span></div>
+                    <div class="coupon-desc">购买剧集同款好物可用，收下后可前往详情页查看</div>
+                </div>
+                <div id="failure-ad">
+                    <div class="ad-product" id="ad-product" aria-label="广告底图">
+                        <div class="ad-art-content">
+                            <div class="ad-badge">京东好物</div>
+                            <div class="ad-title">品牌臻品</div>
+                            <div class="ad-desc">极致工艺，尊贵之选<br>与庆余年一同见证传奇</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="result-actions" id="success-actions">
+                <button class="btn btn-secondary" id="claim-coupon-btn" type="button">收下</button>
+                <button class="btn" id="success-detail-btn" type="button">查看详情</button>
+            </div>
+            <div class="result-actions is-hidden" id="fail-actions">
+                <button class="btn" id="fail-detail-btn" type="button">查看详情</button>
+                <button class="btn btn-plain" id="bottom-return-btn" type="button">返回主视频</button>
+            </div>
+        </div>
+        <div class="role-score-toast" id="role-score-toast" aria-live="polite"></div>
+    </div>
+    
+    <script>
+        const MAIN_VIDEO_URL = '../../character-selection-dialogue-new.html';
+        const PRODUCT_DETAIL_URL = '../1马车游戏/jd_product.html';
+
+        function returnToMainVideo() {
+            if (window.stopInteractiveBgm) window.stopInteractiveBgm();
+            window.location.href = MAIN_VIDEO_URL;
+        }
+
+        function viewProductDetail() {
+            window.location.href = PRODUCT_DETAIL_URL;
+        }
+
+        function showRoleScoreToast(isSuccess) {
+            const role = localStorage.getItem('qingyunianSelectedRole') || '所选角色';
+            const added = isSuccess ? 5 : 2;
+            const total = Math.floor(Math.random() * 8001) + 2000;
+            const toast = document.getElementById('role-score-toast');
+            toast.innerHTML = '为<strong>' + role + '</strong>加了<strong>' + added + '</strong>分<br>现在全服总分是：<strong>' + total + '</strong>';
+            toast.classList.add('visible');
+        }
+
+        class AudioManager {
+            constructor() {
+                this.ctx = null;
+                this.initialized = false;
+            }
+            
+            init() {
+                if (this.initialized) return;
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.initialized = true;
+            }
+            
+            playTone(frequency, duration, type = 'sine', volume = 0.3) {
+                if (!this.ctx) return;
+                
+                const oscillator = this.ctx.createOscillator();
+                const gainNode = this.ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.ctx.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                
+                oscillator.start(this.ctx.currentTime);
+                oscillator.stop(this.ctx.currentTime + duration);
+            }
+            
+            playSuccess() {
+                this.playTone(523.25, 0.15, 'sine', 0.4);
+                setTimeout(() => this.playTone(659.25, 0.15, 'sine', 0.4), 150);
+                setTimeout(() => this.playTone(783.99, 0.3, 'sine', 0.4), 300);
+            }
+            
+            playFail() {
+                this.playTone(200, 0.3, 'sawtooth', 0.3);
+                setTimeout(() => this.playTone(150, 0.4, 'sawtooth', 0.3), 200);
+            }
+            
+            playClick() {
+                this.playTone(800, 0.05, 'sine', 0.2);
+            }
+            
+            playTick() {
+                this.playTone(600, 0.03, 'triangle', 0.15);
+            }
+            
+            playTimeoutTick() {
+                this.playTone(400, 0.1, 'square', 0.2);
+            }
+        }
+        
+        const audioManager = new AudioManager();
+        
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                
+                this.state = 'idle';
+                this.pointerAngle = 0;
+                this.pointerSpeed = 0;
+                this.goldZoneStart = 0;
+                this.goldZoneEnd = 0;
+                this.progress = 0;
+                this.timeInZone = 0;
+                
+                this.timeRemaining = 10;
+                this.timerInterval = null;
+                this.hasInteracted = false;
+                
+                this.isPressing = false;
+                this.lastTime = 0;
+                
+                this.setupEventListeners();
+                this.createParticles();
+                this.animate(0);
+            }
+            
+            resize() {
+                const size = Math.min(window.innerWidth * 0.7, 260);
+                this.canvas.width = size;
+                this.canvas.height = size;
+                this.centerX = size / 2;
+                this.centerY = size / 2;
+                this.radius = size * 0.42;
+            }
+            
+            generateGoldZone() {
+                const zoneWidth = Math.PI / 3;
+                const start = Math.random() * (Math.PI * 2 - zoneWidth);
+                this.goldZoneStart = start;
+                this.goldZoneEnd = start + zoneWidth;
+            }
+            
+            setupEventListeners() {
+                const container = document.getElementById('game-container');
+                
+                const startPress = (e) => {
+                    if (this.state !== 'playing') return;
+                    e.preventDefault();
+                    this.isPressing = true;
+                    this.hasInteracted = true;
+                    audioManager.playClick();
+                    this.createPressEffect(e);
+                };
+                
+                const endPress = () => {
+                    this.isPressing = false;
+                };
+                
+                container.addEventListener('mousedown', startPress);
+                container.addEventListener('touchstart', startPress);
+                container.addEventListener('mouseup', endPress);
+                container.addEventListener('touchend', endPress);
+                container.addEventListener('mouseleave', endPress);
+                
+                window.addEventListener('resize', () => this.resize());
+                
+                document.getElementById('start-btn').addEventListener('click', () => this.startGame());
+                document.getElementById('top-return-btn').addEventListener('click', returnToMainVideo);
+                document.getElementById('bottom-return-btn').addEventListener('click', returnToMainVideo);
+                document.getElementById('success-detail-btn').addEventListener('click', viewProductDetail);
+                document.getElementById('fail-detail-btn').addEventListener('click', viewProductDetail);
+                document.getElementById('claim-coupon-btn').addEventListener('click', (event) => {
+                    event.currentTarget.textContent = '已收下';
+                    event.currentTarget.classList.add('btn-plain');
+                });
+            }
+            
+            createPressEffect(e) {
+                const container = document.getElementById('game-container');
+                const effect = document.createElement('div');
+                effect.className = 'press-effect';
+                
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - 30;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - 30;
+                
+                effect.style.left = x + 'px';
+                effect.style.top = y + 'px';
+                effect.style.width = '60px';
+                effect.style.height = '60px';
+                
+                container.appendChild(effect);
+                setTimeout(() => effect.remove(), 600);
+            }
+            
+            createParticles() {
+                const container = document.getElementById('particles');
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = 100 + '%';
+                    particle.style.animationDelay = Math.random() * 8 + 's';
+                    particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+                    container.appendChild(particle);
+                }
+            }
+            
+            startGame() {
+                audioManager.init();
+                document.getElementById('start-screen').classList.add('hide');
+                document.getElementById('role-score-toast').classList.remove('visible');
+                this.state = 'playing';
+                this.progress = 0;
+                this.timeInZone = 0;
+                this.timeRemaining = 10;
+                this.hasInteracted = false;
+                this.pointerAngle = Math.random() * Math.PI * 2;
+                this.pointerSpeed = (Math.random() - 0.5) * 0.05;
+                this.generateGoldZone();
+                this.startTimer();
+                this.updateTimerDisplay();
+            }
+            
+            startTimer() {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                }
+                
+                this.timerInterval = setInterval(() => {
+                    if (this.state !== 'playing') {
+                        clearInterval(this.timerInterval);
+                        return;
+                    }
+                    
+                    this.timeRemaining -= 0.1;
+                    this.updateTimerDisplay();
+                    
+                    if (this.timeRemaining <= 3 && this.timeRemaining > 0) {
+                        audioManager.playTimeoutTick();
+                    }
+                    
+                    if (this.timeRemaining <= 0) {
+                        this.handleTimeout();
+                    }
+                }, 100);
+            }
+            
+            updateTimerDisplay() {
+                const display = document.getElementById('timer-display');
+                const seconds = Math.ceil(this.timeRemaining);
+                display.textContent = seconds;
+                
+                if (seconds <= 3) {
+                    display.classList.add('warning');
+                } else {
+                    display.classList.remove('warning');
+                }
+            }
+            
+            restart() {
+                document.getElementById('ad-page').classList.remove('show');
+                document.getElementById('role-score-toast').classList.remove('visible');
+                this.state = 'playing';
+                this.progress = 0;
+                this.timeInZone = 0;
+                this.timeRemaining = 10;
+                this.hasInteracted = false;
+                this.pointerAngle = Math.random() * Math.PI * 2;
+                this.pointerSpeed = (Math.random() - 0.5) * 0.05;
+                this.generateGoldZone();
+                this.startTimer();
+                this.updateTimerDisplay();
+            }
+            
+            showSuccess() {
+                clearInterval(this.timerInterval);
+                this.state = 'success';
+                audioManager.playSuccess();
+                this.showAd('success');
+            }
+            
+            showFail() {
+                clearInterval(this.timerInterval);
+                this.state = 'fail';
+                audioManager.playFail();
+                this.showAd('fail');
+            }
+            
+            handleTimeout() {
+                clearInterval(this.timerInterval);
+                this.state = 'timeout';
+                audioManager.playFail();
+                this.showAd('timeout');
+            }
+            
+            showAd(type = 'success') {
+                const adTitle = document.getElementById('ad-result-title');
+                const adSubtitle = document.getElementById('ad-result-subtitle');
+                const couponDisplay = document.getElementById('coupon-display');
+                const failureAd = document.getElementById('failure-ad');
+                const successActions = document.getElementById('success-actions');
+                const failActions = document.getElementById('fail-actions');
+                const claimBtn = document.getElementById('claim-coupon-btn');
+                showRoleScoreToast(type === 'success');
+                
+                if (type === 'success') {
+                    adTitle.textContent = '✨ 交易成功 ✨';
+                    adSubtitle.textContent = '异界商号已将秘宝收入囊中，专属优惠券已解锁';
+                    couponDisplay.classList.remove('is-hidden');
+                    failureAd.classList.add('is-hidden');
+                    successActions.classList.remove('is-hidden');
+                    failActions.classList.add('is-hidden');
+                    claimBtn.textContent = '收下';
+                    claimBtn.classList.remove('btn-plain');
+                } else {
+                    adTitle.textContent = '💔 任务未竟';
+                    adSubtitle.textContent = '碎片时限已过，秘宝未能集齐，不妨先看看异界补给。';
+                    couponDisplay.classList.add('is-hidden');
+                    failureAd.classList.remove('is-hidden');
+                    successActions.classList.add('is-hidden');
+                    failActions.classList.remove('is-hidden');
+                }
+                
+                document.getElementById('ad-page').classList.add('show');
+                
+            }
+            
+            isInGoldZone() {
+                let angle = this.pointerAngle % (Math.PI * 2);
+                if (angle < 0) angle += Math.PI * 2;
+                
+                let start = this.goldZoneStart % (Math.PI * 2);
+                let end = this.goldZoneEnd % (Math.PI * 2);
+                
+                if (start < end) {
+                    return angle >= start && angle <= end;
+                } else {
+                    return angle >= start || angle <= end;
+                }
+            }
+            
+            update(deltaTime) {
+                if (this.state !== 'playing') return;
+                
+                const dt = deltaTime / 16.67;
+                
+                const randomForce = (Math.random() - 0.5) * 0.008;
+                this.pointerSpeed += randomForce;
+                
+                if (this.isPressing) {
+                    const inZone = this.isInGoldZone();
+                    if (inZone) {
+                        this.pointerSpeed *= 0.92;
+                    } else {
+                        const zoneCenter = (this.goldZoneStart + this.goldZoneEnd) / 2;
+                        let diff = zoneCenter - this.pointerAngle;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        this.pointerSpeed += diff * 0.003;
+                    }
+                }
+                
+                this.pointerSpeed *= 0.98;
+                this.pointerSpeed = Math.max(-0.08, Math.min(0.08, this.pointerSpeed));
+                this.pointerAngle += this.pointerSpeed * dt;
+                
+                if (this.isInGoldZone()) {
+                    this.timeInZone += deltaTime;
+                    this.progress = Math.min(100, this.timeInZone / 30);
+                    
+                    if (Math.floor(this.progress) > Math.floor((this.timeInZone - deltaTime) / 30)) {
+                        audioManager.playTick();
+                    }
+                    
+                    if (this.progress >= 100) {
+                        this.showSuccess();
+                    }
+                } else {
+                    this.timeInZone = Math.max(0, this.timeInZone - deltaTime * 0.5);
+                    this.progress = Math.max(0, this.timeInZone / 30);
+                    
+                    if (this.progress <= 0 && this.timeInZone < -500) {
+                        this.showFail();
+                    }
+                }
+                
+                document.getElementById('progress-bar').style.width = this.progress + '%';
+            }
+            
+            draw() {
+                const ctx = this.ctx;
+                const { centerX, centerY, radius } = this;
+                
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius + 15, 0, Math.PI * 2);
+                ctx.strokeStyle = '#5c3317';
+                ctx.lineWidth = 8;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius + 8, 0, Math.PI * 2);
+                ctx.strokeStyle = '#8b6914';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                gradient.addColorStop(0, '#2a1f15');
+                gradient.addColorStop(1, '#1a1510');
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#8b6914';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 0.6, 0, Math.PI * 2);
+                ctx.strokeStyle = '#5c3317';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, this.goldZoneStart, this.goldZoneEnd);
+                ctx.arc(0, 0, radius * 0.6, this.goldZoneEnd, this.goldZoneStart, true);
+                ctx.closePath();
+                const goldGradient = ctx.createRadialGradient(0, 0, radius * 0.6, 0, 0, radius);
+                goldGradient.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
+                goldGradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.5)');
+                goldGradient.addColorStop(1, 'rgba(255, 215, 0, 0.3)');
+                ctx.fillStyle = goldGradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius, this.goldZoneStart, this.goldZoneEnd);
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 0.6, this.goldZoneStart, this.goldZoneEnd);
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                for (let i = 0; i < 60; i++) {
+                    const angle = (i / 60) * Math.PI * 2;
+                    const isMajor = i % 5 === 0;
+                    const innerR = isMajor ? radius * 0.75 : radius * 0.8;
+                    const outerR = radius * 0.85;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * innerR, Math.sin(angle) * innerR);
+                    ctx.lineTo(Math.cos(angle) * outerR, Math.sin(angle) * outerR);
+                    ctx.strokeStyle = isMajor ? '#b8860b' : '#8b6914';
+                    ctx.lineWidth = isMajor ? 2 : 1;
+                    ctx.stroke();
+                }
+                
+                ctx.save();
+                ctx.rotate(this.pointerAngle);
+                
+                if (this.isInGoldZone() && this.state === 'playing') {
+                    ctx.shadowColor = '#00ff00';
+                    ctx.shadowBlur = 15;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -8);
+                ctx.lineTo(radius * 0.9, 0);
+                ctx.lineTo(0, 8);
+                ctx.closePath();
+                
+                const pointerGradient = ctx.createLinearGradient(0, -8, 0, 8);
+                pointerGradient.addColorStop(0, '#ffd700');
+                pointerGradient.addColorStop(0.5, '#fff8dc');
+                pointerGradient.addColorStop(1, '#ffd700');
+                ctx.fillStyle = pointerGradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(radius * 0.85, 0);
+                ctx.lineTo(radius * 0.95, 0);
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.restore();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, 12, 0, Math.PI * 2);
+                ctx.fillStyle = '#d4af37';
+                ctx.fill();
+                ctx.strokeStyle = '#8b6914';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#8b6914';
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            animate(currentTime) {
+                const deltaTime = currentTime - this.lastTime;
+                this.lastTime = currentTime;
+                
+                this.update(deltaTime);
+                this.draw();
+                
+                requestAnimationFrame((t) => this.animate(t));
+            }
+        }
+        
+        window.game = new Game();
+    </script>
+    <script>
+        (function () {
+            const bgm = new Audio("../../demosource2-assets/bgm.mp3");
+            bgm.loop = true;
+            bgm.volume = 0;
+            let started = false;
+            let frame = null;
+
+            function fadeIn() {
+                if (frame) cancelAnimationFrame(frame);
+                const targetVolume = 0.36;
+                const duration = 1800;
+                const start = performance.now();
+
+                function step(now) {
+                    const progress = Math.min(1, (now - start) / duration);
+                    bgm.volume = targetVolume * progress;
+                    if (progress < 1) frame = requestAnimationFrame(step);
+                }
+
+                frame = requestAnimationFrame(step);
+            }
+
+            function startBgm() {
+                if (started) return;
+                started = true;
+                bgm.play().then(fadeIn).catch(() => {
+                    started = false;
+                });
+            }
+
+            window.stopInteractiveBgm = function () {
+                if (frame) cancelAnimationFrame(frame);
+                bgm.pause();
+                bgm.currentTime = 0;
+            };
+
+            window.addEventListener("load", startBgm);
+            document.addEventListener("pointerdown", startBgm, { once: true });
+            document.addEventListener("keydown", startBgm, { once: true });
+        })();
+    </script>
+</body>
+</html>
