@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#190e0b" />
+    <title>影游共生 · 锦盒连开</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell" aria-label="影游共生锦盒连开">
+      <div class="palace" aria-hidden="true">
+        <div class="lantern lantern-left"></div>
+        <div class="lantern lantern-right"></div>
+        <div class="beam beam-left"></div>
+        <div class="beam beam-right"></div>
+        <div class="screen">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="floor"></div>
+      </div>
+
+      <section class="stage">
+        <p class="eyebrow">影游共生</p>
+        <h1>锦盒连开</h1>
+        <p class="subtitle">点击任意锦盒，即刻揭晓国风惊喜</p>
+
+        <div class="boxes" id="boxes" aria-live="polite"></div>
+      </section>
+
+      <section class="reward-ledger" aria-label="奖励池">
+        <div>
+          <strong>奖励池</strong>
+          <span>商品优惠券 2 份 · 腾讯视频会员 1 份</span>
+        </div>
+        <button type="button" id="resetBtn">重置锦盒</button>
+      </section>
+    </main>
+
+    <div class="modal" id="rewardModal" aria-hidden="true">
+      <div class="modal-scrim" data-close></div>
+      <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardTitle">
+        <button class="modal-close" type="button" aria-label="关闭" data-close>×</button>
+        <div class="brand-strip" id="modalBrand"></div>
+        <div class="reward-seal" id="rewardSeal"></div>
+        <p class="modal-kicker" id="rewardTier"></p>
+        <h2 id="rewardTitle"></h2>
+        <p id="rewardDesc"></p>
+        <button class="claim-btn" type="button" data-close>收入锦囊</button>
+        <button class="use-btn" id="useRewardBtn" type="button" hidden>立即使用</button>
+      </article>
+    </div>
+    <div class="role-score-toast" id="roleScoreToast" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+    <script>
+      (function () {
+        const bgm = new Audio("../../demosource2-assets/bgm.mp3");
+        bgm.loop = true;
+        bgm.volume = 0;
+        let started = false;
+        let frame = null;
+
+        function fadeIn() {
+          if (frame) cancelAnimationFrame(frame);
+          const targetVolume = 0.36;
+          const duration = 1800;
+          const start = performance.now();
+
+          function step(now) {
+            const progress = Math.min(1, (now - start) / duration);
+            bgm.volume = targetVolume * progress;
+            if (progress < 1) frame = requestAnimationFrame(step);
+          }
+
+          frame = requestAnimationFrame(step);
+        }
+
+        function startBgm() {
+          if (started) return;
+          started = true;
+          bgm.play().then(fadeIn).catch(() => {
+            started = false;
+          });
+        }
+
+        window.stopInteractiveBgm = function () {
+          if (frame) cancelAnimationFrame(frame);
+          bgm.pause();
+          bgm.currentTime = 0;
+        };
+
+        window.addEventListener("load", startBgm);
+        document.addEventListener("pointerdown", startBgm, { once: true });
+        document.addEventListener("keydown", startBgm, { once: true });
+      })();
+    </script>
+  </body>
+</html>

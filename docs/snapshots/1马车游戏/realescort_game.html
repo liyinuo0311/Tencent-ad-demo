@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>马车护送</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 10%, #36456f 0%, #161b2f 50%, #090d18 100%);
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            color: #fff;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: min(100vw, 420px);
+            height: min(100vh, 720px);
+            background: #141725;
+            overflow: hidden;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48);
+        }
+
+        #returnVideoBtn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 20;
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 50%;
+            background:
+                rgba(8, 10, 17, 0.5)
+                url("icon_4.png") center / 24px 24px no-repeat;
+            box-shadow:
+                0 8px 18px rgba(0, 0, 0, 0.32),
+                inset 0 0 0 1px rgba(255, 229, 153, 0.42);
+            cursor: pointer;
+            pointer-events: auto;
+            display: none;
+        }
+
+        #returnVideoBtn.visible {
+            display: block;
+        }
+
+        #videoLayer {
+            width: min(100vw, 420px);
+            height: min(100vh, 720px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 50% 38%, rgba(215, 172, 80, 0.18), transparent 34%),
+                linear-gradient(180deg, #121018, #050608);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48);
+            text-align: center;
+        }
+
+        #videoLayer.visible {
+            display: flex;
+        }
+
+        .videoCard {
+            width: min(300px, calc(100% - 48px));
+            padding: 28px 22px;
+            border: 1px solid rgba(226, 185, 99, 0.5);
+            border-radius: 8px;
+            background: rgba(10, 12, 18, 0.74);
+            box-shadow: inset 0 0 24px rgba(226, 185, 99, 0.08);
+        }
+
+        .videoCard h2 {
+            margin-bottom: 10px;
+            color: #f2d083;
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 24px;
+        }
+
+        .videoCard p {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #gameCanvas:active {
+            cursor: grabbing;
+        }
+
+        #ui {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        #hud {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .hudPanel {
+            min-width: 92px;
+            padding: 9px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            background: rgba(10, 12, 20, 0.55);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(8px);
+        }
+
+        .statPanel {
+            position: relative;
+            width: 92px;
+            height: 46px;
+            min-width: 92px;
+            padding: 7px 10px 6px;
+            border: 0;
+            border-radius: 0;
+            background: url("icon_6.png?v=20260525-2107") center / 100% 100% no-repeat;
+            box-shadow: none;
+            backdrop-filter: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .statPanel .hudLabel {
+            color: rgba(255, 232, 162, 0.8);
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            margin: 0 0 2px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.68);
+        }
+
+        .statPanel .hudValue {
+            color: #ffd875;
+            font-family: Georgia, "Times New Roman", "PingFang SC", serif;
+            font-size: 22px;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow:
+                0 2px 0 rgba(96, 52, 12, 0.72),
+                0 0 10px rgba(255, 216, 117, 0.45),
+                0 0 18px rgba(255, 180, 74, 0.24);
+        }
+
+        .timerPanel {
+            position: relative;
+            width: 96px;
+            height: 108px;
+            min-width: 96px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .timerPanel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url("icon_1.png") center / contain no-repeat;
+            filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.42));
+        }
+
+        .timerPanel::after {
+            content: "";
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            left: 50%;
+            top: 51.5%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(43, 28, 10, 0.74) 0%, rgba(12, 9, 8, 0.88) 68%, rgba(255, 218, 126, 0.18) 100%);
+            box-shadow:
+                inset 0 0 12px rgba(255, 215, 122, 0.18),
+                0 0 12px rgba(255, 194, 83, 0.22);
+        }
+
+        .timerPanel.warning::after {
+            background: radial-gradient(circle, rgba(70, 11, 9, 0.82) 0%, rgba(16, 7, 7, 0.9) 70%, rgba(255, 63, 53, 0.2) 100%);
+            box-shadow:
+                inset 0 0 12px rgba(255, 105, 90, 0.25),
+                0 0 18px rgba(255, 63, 53, 0.34);
+        }
+
+        .timerPanel .hudLabel {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        .timerPanel .hudValue {
+            position: absolute;
+            left: 50%;
+            top: 51.5%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .hudLabel {
+            display: block;
+            color: rgba(255, 255, 255, 0.66);
+            font-size: 12px;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .hudValue {
+            display: block;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #timer {
+            color: #ffd875;
+            font-family: Georgia, "Times New Roman", "PingFang SC", serif;
+            font-size: 34px;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow:
+                0 2px 0 rgba(96, 52, 12, 0.72),
+                0 0 12px rgba(255, 216, 117, 0.55),
+                0 0 24px rgba(255, 180, 74, 0.3);
+            transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.18s ease;
+        }
+
+        #timer.warning {
+            color: #ff3f35;
+            transform: translate(-50%, -50%) scale(1.08);
+            text-shadow:
+                0 2px 0 rgba(76, 10, 10, 0.78),
+                0 0 12px rgba(255, 63, 53, 0.76),
+                0 0 26px rgba(255, 0, 0, 0.46);
+        }
+
+        #startScreen,
+        #victoryScreen,
+        #failureScreen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 32px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(8, 10, 17, 0.86), rgba(8, 10, 17, 0.94));
+            pointer-events: auto;
+        }
+
+        #startScreen {
+            background:
+                radial-gradient(circle at 50% 42%, rgba(189, 126, 50, 0.24), transparent 42%),
+                linear-gradient(180deg, rgba(20, 11, 7, 0.5), rgba(5, 7, 12, 0.76));
+        }
+
+        #victoryScreen,
+        #failureScreen {
+            background:
+                radial-gradient(circle at 50% 38%, rgba(213, 151, 63, 0.24), transparent 38%),
+                linear-gradient(180deg, rgba(4, 5, 8, 0.62), rgba(2, 3, 6, 0.84));
+        }
+
+        #victoryScreen,
+        #failureScreen {
+            display: none;
+        }
+
+        .startScroll {
+            position: relative;
+            width: min(328px, calc(100vw - 44px));
+            min-height: 454px;
+            padding: 64px 34px 42px;
+            color: #4b2817;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(255, 246, 209, 0.82), transparent 38%),
+                linear-gradient(90deg, rgba(127, 78, 35, 0.16), transparent 12%, transparent 88%, rgba(127, 78, 35, 0.16)),
+                linear-gradient(180deg, #efe0bd 0%, #fbf0ce 18%, #ead6aa 100%);
+            border: 1px solid rgba(118, 70, 28, 0.52);
+            border-radius: 8px;
+            box-shadow:
+                inset 0 0 26px rgba(115, 67, 25, 0.18),
+                inset 0 0 0 2px rgba(255, 247, 205, 0.38),
+                0 22px 44px rgba(0, 0, 0, 0.42);
+        }
+
+        .startScroll::before,
+        .startScroll::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            width: calc(100% + 30px);
+            height: 28px;
+            transform: translateX(-50%);
+            border-radius: 999px;
+            background:
+                linear-gradient(90deg, #4e2413 0%, #ba7b37 14%, #f3d17b 34%, #865021 62%, #3b1c10 100%);
+            box-shadow:
+                inset 0 3px 6px rgba(255, 236, 171, 0.36),
+                inset 0 -5px 8px rgba(51, 22, 10, 0.46),
+                0 6px 12px rgba(0, 0, 0, 0.28);
+        }
+
+        .startScroll::before {
+            top: -14px;
+        }
+
+        .startScroll::after {
+            bottom: -14px;
+        }
+
+        .scrollTexture {
+            position: absolute;
+            inset: 28px 20px;
+            pointer-events: none;
+            opacity: 0.34;
+            background:
+                repeating-linear-gradient(98deg, rgba(86, 47, 20, 0.08) 0 1px, transparent 1px 14px),
+                radial-gradient(circle at 20% 24%, rgba(117, 67, 25, 0.12), transparent 15%),
+                radial-gradient(circle at 76% 72%, rgba(117, 67, 25, 0.1), transparent 18%);
+            mix-blend-mode: multiply;
+        }
+
+        .lantern {
+            position: absolute;
+            top: 34px;
+            width: 42px;
+            height: 72px;
+            filter: drop-shadow(0 6px 10px rgba(73, 18, 8, 0.3));
+        }
+
+        .lantern.left {
+            left: -20px;
+        }
+
+        .lantern.right {
+            right: -20px;
+        }
+
+        .lantern::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 16px;
+            transform: translateX(-50%);
+            background: #c79345;
+        }
+
+        .lanternBody {
+            position: absolute;
+            left: 50%;
+            top: 14px;
+            width: 34px;
+            height: 38px;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 44% 44%;
+            border: 2px solid #f0cf7b;
+            background:
+                linear-gradient(90deg, rgba(82, 23, 12, 0.5), transparent 35%, rgba(255, 232, 151, 0.5) 52%, transparent 72%, rgba(82, 23, 12, 0.5)),
+                linear-gradient(180deg, #d84c2d 0%, #a9231d 100%);
+            box-shadow:
+                inset 0 0 10px rgba(255, 219, 118, 0.55),
+                0 0 14px rgba(243, 168, 70, 0.28);
+        }
+
+        .lanternBody::before,
+        .lanternBody::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            width: 26px;
+            height: 5px;
+            transform: translateX(-50%);
+            border-radius: 999px;
+            background: linear-gradient(90deg, #8b4c1d, #f3d17b, #8b4c1d);
+        }
+
+        .lanternBody::before {
+            top: -5px;
+        }
+
+        .lanternBody::after {
+            bottom: -5px;
+        }
+
+        .lanternTassel {
+            position: absolute;
+            left: 50%;
+            top: 54px;
+            width: 2px;
+            height: 18px;
+            transform: translateX(-50%);
+            background: #9c1e1d;
+            box-shadow: -5px 3px 0 #b92b24, 5px 3px 0 #7d1718;
+        }
+
+        .startTitle {
+            position: relative;
+            margin: 0 0 22px;
+            color: #4a2111;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: 3px;
+            text-shadow:
+                0 1px 0 rgba(255, 236, 182, 0.9),
+                0 6px 12px rgba(88, 41, 14, 0.22);
+        }
+
+        .startTitle::after {
+            content: "";
+            display: block;
+            width: 136px;
+            height: 1px;
+            margin: 15px auto 0;
+            background: linear-gradient(90deg, transparent, rgba(108, 62, 24, 0.82), transparent);
+        }
+
+        .missionText {
+            position: relative;
+            margin: 0 auto 28px;
+            max-width: 240px;
+            color: #57331f;
+            font-family: "Songti SC", "STSong", "SimSun", serif;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.9;
+            text-align: left;
+            text-shadow: 0 1px 0 rgba(255, 246, 213, 0.72);
+        }
+
+        .missionText .orderLine {
+            display: block;
+        }
+
+        .missionText .timeLine {
+            display: block;
+            margin-top: 8px;
+            color: #7d1f14;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        #startScreen .btn {
+            position: relative;
+            min-width: 172px;
+            min-height: 50px;
+            border: 1px solid #d8b46b;
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255, 239, 169, 0.16), transparent 45%),
+                linear-gradient(135deg, #173d32 0%, #0a241f 100%);
+            color: #f4d47c;
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 240, 180, 0.22),
+                inset 0 -8px 16px rgba(0, 0, 0, 0.24),
+                0 10px 22px rgba(46, 28, 8, 0.32);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+        }
+
+        #startScreen .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .victoryPanel {
+            position: relative;
+            width: min(316px, calc(100vw - 48px));
+            min-height: 430px;
+            padding: 58px 30px 34px;
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 50% 16%, rgba(199, 134, 49, 0.24), transparent 34%),
+                repeating-linear-gradient(135deg, rgba(255, 218, 126, 0.04) 0 1px, transparent 1px 12px),
+                linear-gradient(180deg, #17120e 0%, #070807 54%, #16100d 100%);
+            border: 2px solid rgba(218, 170, 87, 0.86);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 235, 167, 0.22),
+                inset 0 0 28px rgba(0, 0, 0, 0.68),
+                0 24px 54px rgba(0, 0, 0, 0.54),
+                0 0 34px rgba(207, 145, 56, 0.18);
+            overflow: visible;
+        }
+
+        .victoryPanel::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border: 1px solid rgba(233, 191, 104, 0.68);
+            border-radius: 6px;
+            box-shadow: inset 0 0 0 1px rgba(103, 66, 25, 0.76);
+            pointer-events: none;
+        }
+
+        .victoryPanel::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: -20px;
+            width: 42px;
+            height: 42px;
+            transform: translateX(-50%) rotate(45deg);
+            border: 2px solid #edcf83;
+            border-radius: 5px;
+            background:
+                radial-gradient(circle at 36% 28%, #fff3b9 0%, #3aa19b 18%, #0b3c42 58%, #041c24 100%);
+            box-shadow:
+                0 0 0 5px rgba(71, 43, 16, 0.86),
+                0 0 18px rgba(78, 197, 180, 0.28),
+                inset 0 0 10px rgba(255, 255, 255, 0.24);
+        }
+
+        .victoryCorner {
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            pointer-events: none;
+        }
+
+        .victoryCorner::before,
+        .victoryCorner::after {
+            content: "";
+            position: absolute;
+            background: linear-gradient(90deg, #7f4d1e, #f2d486, #9c6229);
+            box-shadow: 0 0 8px rgba(231, 184, 93, 0.24);
+        }
+
+        .victoryCorner::before {
+            width: 46px;
+            height: 4px;
+        }
+
+        .victoryCorner::after {
+            width: 4px;
+            height: 46px;
+        }
+
+        .victoryCorner.tl {
+            left: 13px;
+            top: 13px;
+        }
+
+        .victoryCorner.tr {
+            right: 13px;
+            top: 13px;
+            transform: scaleX(-1);
+        }
+
+        .victoryCorner.bl {
+            left: 13px;
+            bottom: 13px;
+            transform: scaleY(-1);
+        }
+
+        .victoryCorner.br {
+            right: 13px;
+            bottom: 13px;
+            transform: scale(-1);
+        }
+
+        .victoryTitle {
+            position: relative;
+            margin: 0 0 8px;
+            color: #f7d87f;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: 2px;
+            text-shadow:
+                0 2px 0 #5f3515,
+                0 0 13px rgba(246, 205, 112, 0.42);
+        }
+
+        .rewardLabel {
+            position: relative;
+            margin: 0 0 6px;
+            color: rgba(246, 215, 145, 0.82);
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 15px;
+            letter-spacing: 3px;
+        }
+
+        #victoryScreen .score {
+            position: relative;
+            min-height: 22px;
+            margin: 0 0 20px;
+            color: rgba(231, 198, 128, 0.74);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .couponFrame {
+            position: relative;
+            width: 168px;
+            height: 142px;
+            margin: 0 auto 26px;
+            border: 1px solid rgba(235, 201, 113, 0.84);
+            border-radius: 8px;
+            background:
+                linear-gradient(135deg, rgba(255, 235, 166, 0.08), transparent 34%),
+                linear-gradient(180deg, rgba(35, 26, 16, 0.88), rgba(11, 13, 12, 0.9));
+            box-shadow:
+                inset 0 0 0 2px rgba(126, 78, 28, 0.58),
+                inset 0 0 22px rgba(0, 0, 0, 0.45),
+                0 14px 24px rgba(0, 0, 0, 0.36);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .couponIcon {
+            position: relative;
+            width: 112px;
+            height: 74px;
+            border-radius: 8px;
+            border: 2px solid #e4c06a;
+            background:
+                radial-gradient(circle at 28% 18%, rgba(255, 247, 198, 0.74), transparent 18%),
+                linear-gradient(135deg, #f6dd9d 0%, #b87337 46%, #543116 100%);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 245, 191, 0.42),
+                0 0 18px rgba(221, 164, 65, 0.34);
+            overflow: hidden;
+        }
+
+        .couponIcon::before,
+        .couponIcon::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #15100c;
+            transform: translateY(-50%);
+            box-shadow: inset 0 0 6px rgba(223, 184, 96, 0.18);
+        }
+
+        .couponIcon::before {
+            left: -11px;
+        }
+
+        .couponIcon::after {
+            right: -11px;
+        }
+
+        .couponMark {
+            position: absolute;
+            inset: 12px 18px;
+            border: 1px solid rgba(91, 44, 18, 0.56);
+            border-radius: 5px;
+            color: #4b2611;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "STKaiti", "KaiTi", serif;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: rgba(255, 242, 190, 0.24);
+            text-shadow: 0 1px 0 rgba(255, 236, 170, 0.72);
+        }
+
+        #victoryScreen .btn {
+            position: relative;
+            min-width: 166px;
+            min-height: 50px;
+            border: 1px solid #d8b46b;
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255, 239, 169, 0.18), transparent 48%),
+                linear-gradient(135deg, #173d32 0%, #0a241f 100%);
+            color: #f6d77c;
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 240, 180, 0.22),
+                inset 0 -8px 16px rgba(0, 0, 0, 0.24),
+                0 10px 22px rgba(0, 0, 0, 0.36);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.48);
+        }
+
+        .claimStatus {
+            min-height: 22px;
+            margin: 12px 0 0;
+            color: #f7d87f;
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 15px;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            text-shadow: 0 0 10px rgba(247, 216, 127, 0.34);
+        }
+
+        .claimStatus.visible {
+            opacity: 1;
+        }
+
+        .jdLink {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            margin: 14px auto 0;
+            padding: 10px 18px;
+            width: fit-content;
+            max-width: 100%;
+            border: 1px solid #f0c971;
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255, 237, 169, 0.16), transparent 55%),
+                linear-gradient(135deg, #7e1717, #3d0d0d);
+            color: #ffe39a;
+            font-family: "Songti SC", "STSong", serif;
+            font-size: 15px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
+            pointer-events: auto;
+        }
+
+        .jdLink.visible {
+            display: inline-flex;
+        }
+
+        .failurePanel {
+            position: relative;
+            width: min(326px, calc(100vw - 40px));
+            min-height: 458px;
+            padding: 54px 26px 28px;
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(133, 26, 23, 0.36), transparent 36%),
+                repeating-linear-gradient(135deg, rgba(255, 218, 126, 0.035) 0 1px, transparent 1px 12px),
+                linear-gradient(180deg, #1a100e 0%, #080707 100%);
+            border: 2px solid rgba(202, 142, 67, 0.86);
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 222, 152, 0.18),
+                inset 0 0 30px rgba(0, 0, 0, 0.72),
+                0 24px 54px rgba(0, 0, 0, 0.58);
+        }
+
+        .failureTitle {
+            margin: 0 0 8px;
+            color: #ffcf75;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: 34px;
+            line-height: 1.1;
+            letter-spacing: 2px;
+            text-shadow:
+                0 2px 0 #6c1a12,
+                0 0 16px rgba(220, 50, 37, 0.42);
+        }
+
+        .failureCopy {
+            margin: 0 0 18px;
+            color: rgba(247, 215, 145, 0.76);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .roleScoreToast {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 220;
+            display: none;
+            min-width: 188px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 216, 117, 0.52);
+            border-radius: 8px;
+            color: #ffe7a3;
+            background: rgba(30, 16, 9, 0.92);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4), inset 0 0 16px rgba(255, 216, 117, 0.08);
+            font-size: 13px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .roleScoreToast.visible {
+            display: block;
+        }
+
+        .roleScoreToast strong {
+            color: #ffd875;
+        }
+
+        .adOverlay {
+            position: relative;
+            width: 100%;
+            min-height: 232px;
+            margin: 0 auto 14px;
+            border: 1px solid rgba(244, 202, 111, 0.9);
+            border-radius: 8px;
+            background:
+                radial-gradient(circle at 48% 28%, rgba(255, 235, 166, 0.32), transparent 26%),
+                linear-gradient(135deg, #25160e 0%, #5c1715 48%, #170b09 100%);
+            box-shadow:
+                inset 0 0 0 2px rgba(119, 70, 25, 0.62),
+                inset 0 0 28px rgba(0, 0, 0, 0.36),
+                0 16px 30px rgba(0, 0, 0, 0.38);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .adOverlay.closed {
+            display: none;
+        }
+
+        .adClose {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(238, 202, 126, 0.78);
+            border-radius: 50%;
+            background: rgba(12, 9, 8, 0.78);
+            color: #f8d88a;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .adBadge {
+            color: #ffdf90;
+            font-family: "STKaiti", "KaiTi", serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-shadow: 0 0 14px rgba(255, 199, 88, 0.36);
+        }
+
+        .adText {
+            max-width: 210px;
+            color: rgba(255, 229, 168, 0.82);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        h1 {
+            font-size: 30px;
+            line-height: 1.18;
+            margin-bottom: 12px;
+            letter-spacing: 0;
+            text-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            max-width: 290px;
+            color: rgba(255, 255, 255, 0.74);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+            min-height: 48px;
+            padding: 12px 28px;
+            border: 0;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #d9aa63 0%, #a7603a 100%);
+            color: #16100b;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(167, 96, 58, 0.38);
+            transition: transform 0.18s ease, filter 0.18s ease;
+            pointer-events: auto;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+        .score {
+            min-height: 28px;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0 0 22px;
+        }
+
+        #dragHint {
+            position: absolute;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            width: min(260px, calc(100% - 40px));
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(8, 10, 17, 0.46);
+            color: rgba(255, 255, 255, 0.76);
+            font-size: 13px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        #dragHint.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <button id="returnVideoBtn" type="button" onclick="returnToVideo()" aria-label="返回主视频"></button>
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">
+            <div id="hud">
+                <div class="hudPanel timerPanel">
+                    <span class="hudLabel">护送</span>
+                    <span class="hudValue" id="timer">10</span>
+                </div>
+                <div class="hudPanel statPanel">
+                    <span class="hudLabel">受击</span>
+                    <span class="hudValue" id="hitValue">0</span>
+                </div>
+                <div class="hudPanel statPanel">
+                    <span class="hudLabel">威胁</span>
+                    <span class="hudValue" id="threatValue">1</span>
+                </div>
+            </div>
+            <div id="dragHint">拖动马车左右移动，避开飞来的箭</div>
+        </div>
+        <div id="startScreen">
+            <div class="startScroll">
+                <span class="scrollTexture"></span>
+                <span class="lantern left"><span class="lanternBody"></span><span class="lanternTassel"></span></span>
+                <span class="lantern right"><span class="lanternBody"></span><span class="lanternTassel"></span></span>
+                <h1 class="startTitle">密令速递</h1>
+                <p class="missionText">
+                    <span class="orderLine">监察院紧急密令：</span>
+                    <span class="orderLine">北齐密探已潜入京城！</span>
+                    <span class="orderLine">护送命令到达终点，</span>
+                    <span class="orderLine">切勿落入敌手！</span>
+                    <span class="timeLine">剩余时间：10秒</span>
+                </p>
+                <button class="btn" onclick="startGame()">开始护送</button>
+            </div>
+        </div>
+        <div id="victoryScreen">
+            <div class="victoryPanel">
+                <span class="victoryCorner tl"></span>
+                <span class="victoryCorner tr"></span>
+                <span class="victoryCorner bl"></span>
+                <span class="victoryCorner br"></span>
+                <h1 class="victoryTitle">密令已送达</h1>
+                <p class="rewardLabel">奖励获得</p>
+                <p class="score" id="finalStats">马车顺利抵达目的地。</p>
+                <div class="couponFrame">
+                    <div class="couponIcon">
+                        <span class="couponMark">券</span>
+                    </div>
+                </div>
+                <button class="btn" type="button" id="claimRewardBtn" onclick="claimReward()">领取奖励</button>
+                <p class="claimStatus" id="claimStatus">领取成功</p>
+                <a class="jdLink" id="successJdLink" href="#">前往京东领取同款好礼</a>
+            </div>
+        </div>
+        <div id="failureScreen">
+            <div class="failurePanel">
+                <h1 class="failureTitle">护送失败</h1>
+                <p class="failureCopy" id="failureStats">密令受损，敌手已追至京城。</p>
+                <div class="adOverlay" id="failureAd">
+                    <button class="adClose" type="button" onclick="closeFailureAd()" aria-label="关闭广告">×</button>
+                    <div class="adBadge">京东好物</div>
+                    <p class="adText">密令虽失，补给仍至。即刻前往京东选购剧集同款推荐。</p>
+                </div>
+                <a class="jdLink" id="failureJdLink" href="#">前往京东购买补给</a>
+            </div>
+        </div>
+        <div class="roleScoreToast" id="roleScoreToast" aria-live="polite"></div>
+    </div>
+    <div id="videoLayer">
+        <div class="videoCard">
+            <h2>主视频播放中</h2>
+            <p>小游戏已关闭，已模拟返回剧集正片播放层。</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('gameContainer');
+        const timerEl = document.getElementById('timer');
+        const hitEl = document.getElementById('hitValue');
+        const threatEl = document.getElementById('threatValue');
+        const dragHint = document.getElementById('dragHint');
+
+        const GAME_DURATION = 10;
+        const FAILURE_HIT_LIMIT = 4;
+        const JD_PRODUCT_URL = 'jd_product.html';
+        let rewardLinkTimer = null;
+        let failureLinkTimer = null;
+
+        const carriageImage = new Image();
+        carriageImage.src = 'carriage.PNG';
+        let useImage = false;
+        carriageImage.onload = () => {
+            useImage = true;
+            drawStartPreview();
+        };
+
+        const arrowImage = new Image();
+        arrowImage.src = 'arrow_extracted.png';
+        arrowImage.onload = () => {
+            drawStartPreview();
+        };
+
+        const backgroundImage = new Image();
+        backgroundImage.src = 'bg_road.png';
+        backgroundImage.onload = () => {
+            drawStartPreview();
+        };
+
+        let gameState = 'start';
+        let elapsed = 0;
+        let lastTime = 0;
+        let swordSpawnTimer = 0;
+        let swordSpawnInterval = 1150;
+        let hitCount = 0;
+        let roadOffset = 0;
+        let screenShake = 0;
+        let hintTimer = 0;
+        let comboTimer = 0;
+
+        const carriage = {
+            x: 0,
+            y: 0,
+            width: 96,
+            height: 114,
+            targetX: 0,
+            speed: 0.22,
+            invincibleTimer: 0,
+            tilt: 0
+        };
+
+        let swords = [];
+        let particles = [];
+        let isDragging = false;
+
+        function resizeCanvas() {
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            const rect = container.getBoundingClientRect();
+            canvas.width = Math.floor(rect.width * ratio);
+            canvas.height = Math.floor(rect.height * ratio);
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            canvas.logicalWidth = rect.width;
+            canvas.logicalHeight = rect.height;
+            fitCarriage();
+            if (gameState !== 'playing') {
+                drawStartPreview();
+            }
+        }
+
+        function fitCarriage() {
+            const w = canvas.logicalWidth || container.clientWidth;
+            const h = canvas.logicalHeight || container.clientHeight;
+            const scale = Math.max(0.82, Math.min(1.08, w / 400));
+            carriage.width = 96 * scale;
+            carriage.height = 114 * scale;
+            carriage.y = h - carriage.height * 0.62 - 28;
+            if (!carriage.x) {
+                carriage.x = w / 2;
+                carriage.targetX = w / 2;
+            }
+            carriage.x = clamp(carriage.x, carriage.width * 0.42, w - carriage.width * 0.42);
+            carriage.targetX = clamp(carriage.targetX, carriage.width * 0.42, w - carriage.width * 0.42);
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function getPointerX(event) {
+            const point = event.touches ? event.touches[0] : event;
+            const rect = canvas.getBoundingClientRect();
+            return point.clientX - rect.left;
+        }
+
+        function handleInput(x) {
+            const previousTarget = carriage.targetX;
+            carriage.targetX = clamp(x, carriage.width * 0.42, canvas.logicalWidth - carriage.width * 0.42);
+            carriage.tilt = clamp((carriage.targetX - previousTarget) * 0.005, -0.16, 0.16);
+            hintTimer = 0;
+            dragHint.classList.remove('visible');
+        }
+
+        canvas.addEventListener('pointerdown', (event) => {
+            if (gameState !== 'playing') return;
+            isDragging = true;
+            canvas.setPointerCapture(event.pointerId);
+            handleInput(getPointerX(event));
+        });
+
+        canvas.addEventListener('pointermove', (event) => {
+            if (!isDragging || gameState !== 'playing') return;
+            handleInput(getPointerX(event));
+        });
+
+        canvas.addEventListener('pointerup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('pointercancel', () => {
+            isDragging = false;
+        });
+
+        class Sword {
+            constructor() {
+                const w = canvas.logicalWidth;
+                const h = canvas.logicalHeight;
+                const progress = elapsed / GAME_DURATION;
+                const side = Math.random();
+                const targetX = carriage.x + (Math.random() - 0.5) * (95 + progress * 70);
+                const targetY = carriage.y - carriage.height * 0.08 + (Math.random() - 0.5) * 62;
+                const speed = 230 + Math.random() * 70 + progress * 95;
+
+                if (side < 0.55) {
+                    this.x = Math.random() * w;
+                    this.y = -42;
+                } else if (side < 0.78) {
+                    this.x = -42;
+                    this.y = Math.random() * h * 0.58 + 20;
+                } else {
+                    this.x = w + 42;
+                    this.y = Math.random() * h * 0.58 + 20;
+                }
+
+                const dx = targetX - this.x;
+                const dy = targetY - this.y;
+                const length = Math.hypot(dx, dy) || 1;
+                this.vx = dx / length * speed;
+                this.vy = dy / length * speed;
+                this.angle = Math.atan2(this.vy, this.vx);
+                this.length = 46 + Math.random() * 10;
+                this.radius = 10;
+                this.spin = (Math.random() - 0.5) * 0.08;
+                this.glow = 0.4 + Math.random() * 0.4;
+            }
+
+            update(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.angle += this.spin * dt * 60;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.globalAlpha = this.glow;
+                const aura = ctx.createLinearGradient(-this.length * 0.5, 0, this.length * 0.5, 0);
+                aura.addColorStop(0, 'rgba(118, 198, 255, 0)');
+                aura.addColorStop(0.55, 'rgba(118, 198, 255, 0.42)');
+                aura.addColorStop(1, 'rgba(255, 245, 185, 0.16)');
+                ctx.strokeStyle = aura;
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.moveTo(-this.length * 0.65, 0);
+                ctx.lineTo(this.length * 0.48, 0);
+                ctx.stroke();
+
+                ctx.globalAlpha = 1;
+                if (arrowImage.complete) {
+                    const size = this.length * 1.25;
+                    ctx.rotate(Math.PI / 4);
+                    ctx.drawImage(arrowImage, -size / 2, -size / 2, size, size);
+                } else {
+                    ctx.fillStyle = '#cbd8e6';
+                    ctx.beginPath();
+                    ctx.moveTo(this.length * 0.55, 0);
+                    ctx.lineTo(this.length * 0.28, -6);
+                    ctx.lineTo(-this.length * 0.2, -4);
+                    ctx.lineTo(-this.length * 0.2, 4);
+                    ctx.lineTo(this.length * 0.28, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            isOffScreen() {
+                const w = canvas.logicalWidth;
+                const h = canvas.logicalHeight;
+                return this.x < -90 || this.x > w + 90 || this.y < -90 || this.y > h + 90;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, power = 1) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 190 * power;
+                this.vy = (Math.random() - 0.5) * 150 * power - 35;
+                this.life = 1;
+                this.decay = 1.6 + Math.random() * 1.1;
+                this.color = color;
+                this.size = 2 + Math.random() * 4 * power;
+            }
+
+            update(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.vy += 240 * dt;
+                this.life -= this.decay * dt;
+                this.size *= 1 - 1.7 * dt;
+            }
+
+            draw() {
+                if (this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = Math.max(this.life, 0);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.max(this.size, 0.2), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function drawBackground(dt = 0) {
+            const w = canvas.logicalWidth;
+            const h = canvas.logicalHeight;
+            roadOffset = (roadOffset + dt * 120) % 80;
+
+            if (backgroundImage.complete && backgroundImage.naturalWidth) {
+                const scale = Math.max(w / backgroundImage.naturalWidth, h / backgroundImage.naturalHeight);
+                const drawW = backgroundImage.naturalWidth * scale;
+                const drawH = backgroundImage.naturalHeight * scale;
+                const drawX = (w - drawW) / 2;
+                const drawY = (h - drawH) / 2;
+                ctx.drawImage(backgroundImage, drawX, drawY, drawW, drawH);
+            } else {
+                const fallback = ctx.createLinearGradient(0, 0, 0, h);
+                fallback.addColorStop(0, '#283252');
+                fallback.addColorStop(0.45, '#171d31');
+                fallback.addColorStop(1, '#111018');
+                ctx.fillStyle = fallback;
+                ctx.fillRect(0, 0, w, h);
+            }
+
+            const vignette = ctx.createRadialGradient(w * 0.5, h * 0.48, h * 0.18, w * 0.5, h * 0.5, h * 0.72);
+            vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            vignette.addColorStop(0.72, 'rgba(4, 7, 12, 0.16)');
+            vignette.addColorStop(1, 'rgba(2, 4, 9, 0.48)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        function drawCarriage() {
+            const x = carriage.x;
+            const y = carriage.y;
+            const w = carriage.width;
+            const h = carriage.height;
+            const blink = carriage.invincibleTimer > 0 && Math.floor(carriage.invincibleTimer * 18) % 2 === 0;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(carriage.tilt);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
+            ctx.beginPath();
+            ctx.ellipse(0, h * 0.43, w * 0.46, 11, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (!blink) {
+                if (useImage && carriageImage.complete) {
+                    ctx.drawImage(carriageImage, -w / 2, -h / 2, w, h);
+                } else {
+                    drawFallbackCarriage(w, h);
+                }
+            }
+
+            if (carriage.invincibleTimer > 0) {
+                ctx.globalAlpha = 0.28 + Math.sin(performance.now() * 0.02) * 0.08;
+                ctx.strokeStyle = '#fff3b5';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, w * 0.5, h * 0.42, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+            carriage.tilt *= 0.9;
+        }
+
+        function drawFallbackCarriage(w, h) {
+            ctx.fillStyle = '#8b5835';
+            ctx.fillRect(-w * 0.36, -h * 0.18, w * 0.72, h * 0.44);
+            ctx.fillStyle = '#5f3726';
+            ctx.beginPath();
+            ctx.moveTo(-w * 0.42, -h * 0.18);
+            ctx.lineTo(0, -h * 0.4);
+            ctx.lineTo(w * 0.42, -h * 0.18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#2a1d19';
+            ctx.beginPath();
+            ctx.arc(-w * 0.25, h * 0.25, w * 0.11, 0, Math.PI * 2);
+            ctx.arc(w * 0.25, h * 0.25, w * 0.11, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function checkCollision(sword) {
+            if (carriage.invincibleTimer > 0) return false;
+            const box = {
+                left: carriage.x - carriage.width * 0.28,
+                right: carriage.x + carriage.width * 0.28,
+                top: carriage.y - carriage.height * 0.31,
+                bottom: carriage.y + carriage.height * 0.28
+            };
+            const nearestX = clamp(sword.x, box.left, box.right);
+            const nearestY = clamp(sword.y, box.top, box.bottom);
+            const dx = sword.x - nearestX;
+            const dy = sword.y - nearestY;
+            return dx * dx + dy * dy < sword.radius * sword.radius;
+        }
+
+        function createImpact(x, y, strong = false) {
+            const colors = strong ? ['#ff6647', '#ffd36d', '#ffffff'] : ['#b9d9ff', '#fff0b0', '#d8e5ef'];
+            const count = strong ? 28 : 12;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)], strong ? 1.35 : 0.75));
+            }
+        }
+
+        function updateHud() {
+            const timeLeft = Math.max(0, Math.ceil(GAME_DURATION - elapsed));
+            const isTimerWarning = timeLeft > 0 && timeLeft <= 3;
+            timerEl.textContent = String(timeLeft);
+            timerEl.classList.toggle('warning', isTimerWarning);
+            timerEl.parentElement.classList.toggle('warning', isTimerWarning);
+            hitEl.textContent = String(hitCount);
+            threatEl.textContent = String(Math.min(5, 1 + Math.floor(elapsed / 3)));
+        }
+
+        function spawnSwordBurst() {
+            swords.push(new Sword());
+            const progress = elapsed / GAME_DURATION;
+            if (progress > 0.65 && Math.random() < 0.16) {
+                setTimeout(() => {
+                    if (gameState === 'playing') swords.push(new Sword());
+                }, 180);
+            }
+            if (progress > 0.86 && Math.random() < 0.1) {
+                setTimeout(() => {
+                    if (gameState === 'playing') swords.push(new Sword());
+                }, 330);
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing') return;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.033);
+            lastTime = timestamp;
+            elapsed += dt;
+            hintTimer += dt;
+            comboTimer += dt;
+
+            if (hintTimer > 1.3 && elapsed < 5) {
+                dragHint.classList.add('visible');
+            }
+
+            carriage.x += (carriage.targetX - carriage.x) * carriage.speed;
+            carriage.invincibleTimer = Math.max(0, carriage.invincibleTimer - dt);
+            swordSpawnInterval = Math.max(720, 1150 - elapsed * 28);
+            swordSpawnTimer += dt * 1000;
+            screenShake = Math.max(0, screenShake - dt * 24);
+
+            if (swordSpawnTimer >= swordSpawnInterval) {
+                spawnSwordBurst();
+                swordSpawnTimer = 0;
+            }
+
+            ctx.clearRect(0, 0, canvas.logicalWidth, canvas.logicalHeight);
+            ctx.save();
+            if (screenShake > 0) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+            }
+
+            drawBackground(dt);
+
+            for (let i = swords.length - 1; i >= 0; i--) {
+                const sword = swords[i];
+                sword.update(dt);
+                sword.draw();
+
+                if (checkCollision(sword)) {
+                    hitCount += 1;
+                    carriage.invincibleTimer = 1.05;
+                    screenShake = 9;
+                    createImpact(sword.x, sword.y, true);
+                    swords.splice(i, 1);
+                    updateHud();
+
+                    continue;
+                }
+
+                if (sword.isOffScreen()) {
+                    if (comboTimer > 0.25) {
+                        createImpact(sword.x, sword.y, false);
+                        comboTimer = 0;
+                    }
+                    swords.splice(i, 1);
+                }
+            }
+
+            drawCarriage();
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update(dt);
+                particles[i].draw();
+                if (particles[i].life <= 0) particles.splice(i, 1);
+            }
+
+            ctx.restore();
+            updateHud();
+
+            if (elapsed >= GAME_DURATION) {
+                endGame();
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawStartPreview() {
+            if (!canvas.logicalWidth || !canvas.logicalHeight) return;
+            ctx.clearRect(0, 0, canvas.logicalWidth, canvas.logicalHeight);
+            drawBackground(0);
+            drawCarriage();
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            clearRewardTimers();
+            elapsed = 0;
+            lastTime = performance.now();
+            swordSpawnTimer = 0;
+            swordSpawnInterval = 1150;
+            hitCount = 0;
+            screenShake = 0;
+            hintTimer = 0;
+            comboTimer = 0;
+            swords = [];
+            particles = [];
+            carriage.x = canvas.logicalWidth / 2;
+            carriage.targetX = canvas.logicalWidth / 2;
+            carriage.invincibleTimer = 0;
+            fitCarriage();
+            updateHud();
+
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('failureScreen').style.display = 'none';
+            document.getElementById('claimStatus').classList.remove('visible');
+            document.getElementById('successJdLink').classList.remove('visible');
+            document.getElementById('failureJdLink').classList.remove('visible');
+            document.getElementById('failureAd').classList.remove('closed');
+            document.getElementById('returnVideoBtn').classList.remove('visible');
+            document.getElementById('gameContainer').style.display = 'block';
+            document.getElementById('videoLayer').classList.remove('visible');
+            document.getElementById('claimRewardBtn').disabled = false;
+            document.getElementById('claimRewardBtn').textContent = '领取奖励';
+            document.getElementById('roleScoreToast').classList.remove('visible');
+            dragHint.classList.remove('visible');
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            const failed = hitCount > FAILURE_HIT_LIMIT;
+            gameState = failed ? 'failure' : 'victory';
+            dragHint.classList.remove('visible');
+            showRoleScoreToast(!failed);
+
+            if (failed) {
+                document.getElementById('failureStats').textContent = '被击中 ' + hitCount + ' 次，密令未能安全送达。';
+                document.getElementById('failureScreen').style.display = 'flex';
+                failureLinkTimer = setTimeout(() => {
+                    document.getElementById('failureJdLink').classList.add('visible');
+                    document.getElementById('returnVideoBtn').classList.add('visible');
+                }, 3000);
+                return;
+            }
+
+            const statsText = hitCount === 0
+                ? '完美通关！未被击中！'
+                : '被击中 ' + hitCount + ' 次';
+            document.getElementById('finalStats').textContent = statsText;
+            document.getElementById('victoryScreen').style.display = 'flex';
+        }
+
+        function showRoleScoreToast(isSuccess) {
+            const role = localStorage.getItem('qingyunianSelectedRole') || '所选角色';
+            const added = isSuccess ? 5 : 2;
+            const total = Math.floor(Math.random() * 8001) + 2000;
+            const toast = document.getElementById('roleScoreToast');
+            toast.innerHTML = '为<strong>' + role + '</strong>加了<strong>' + added + '</strong>分<br>现在全服总分是：<strong>' + total + '</strong>';
+            toast.classList.add('visible');
+        }
+
+        function claimReward() {
+            const button = document.getElementById('claimRewardBtn');
+            button.disabled = true;
+            button.textContent = '已领取';
+            document.getElementById('claimStatus').classList.add('visible');
+            if (rewardLinkTimer) clearTimeout(rewardLinkTimer);
+            rewardLinkTimer = setTimeout(() => {
+                document.getElementById('successJdLink').classList.add('visible');
+                document.getElementById('returnVideoBtn').classList.add('visible');
+            }, 3000);
+        }
+
+        function closeFailureAd() {
+            document.getElementById('failureAd').classList.add('closed');
+        }
+
+        function returnToVideo() {
+            if (window.stopInteractiveBgm) window.stopInteractiveBgm();
+            window.location.assign('../../character-selection-dialogue-new.html');
+        }
+
+        function clearRewardTimers() {
+            if (rewardLinkTimer) clearTimeout(rewardLinkTimer);
+            if (failureLinkTimer) clearTimeout(failureLinkTimer);
+            rewardLinkTimer = null;
+            failureLinkTimer = null;
+        }
+
+        document.getElementById('successJdLink').href = JD_PRODUCT_URL;
+        document.getElementById('failureJdLink').href = JD_PRODUCT_URL;
+        window.addEventListener('resize', resizeCanvas);
+        document.addEventListener('touchmove', (event) => {
+            if (event.target === canvas) event.preventDefault();
+        }, { passive: false });
+
+        resizeCanvas();
+    </script>
+    <script>
+        (function () {
+            const bgm = new Audio("../../demosource2-assets/bgm.mp3");
+            bgm.loop = true;
+            bgm.volume = 0;
+            let started = false;
+            let frame = null;
+
+            function fadeIn() {
+                if (frame) cancelAnimationFrame(frame);
+                const targetVolume = 0.36;
+                const duration = 1800;
+                const start = performance.now();
+
+                function step(now) {
+                    const progress = Math.min(1, (now - start) / duration);
+                    bgm.volume = targetVolume * progress;
+                    if (progress < 1) frame = requestAnimationFrame(step);
+                }
+
+                frame = requestAnimationFrame(step);
+            }
+
+            function startBgm() {
+                if (started) return;
+                started = true;
+                bgm.play().then(fadeIn).catch(() => {
+                    started = false;
+                });
+            }
+
+            window.stopInteractiveBgm = function () {
+                if (frame) cancelAnimationFrame(frame);
+                bgm.pause();
+                bgm.currentTime = 0;
+            };
+
+            window.addEventListener("load", startBgm);
+            document.addEventListener("pointerdown", startBgm, { once: true });
+            document.addEventListener("keydown", startBgm, { once: true });
+        })();
+    </script>
+</body>
+</html>

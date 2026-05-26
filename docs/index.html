@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>角色选择与橙光对话</title>
+  <style>
+    :root {
+      --gold: #d9b45f;
+      --gold-soft: rgba(217, 180, 95, 0.42);
+      --ink: #161316;
+      --paper: #f7ead0;
+      --line: rgba(255, 232, 171, 0.42);
+      --asset-root: "demosource2-assets/";
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: #fff;
+      background: #101016;
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(11, 13, 24, 0.26), rgba(8, 6, 10, 0.78)),
+        url("demosource2-assets/橙光背景待定.png") center / cover fixed;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: none;
+    }
+
+    .screen.is-active {
+      display: block;
+    }
+
+    .player-screen {
+      min-height: 100vh;
+      position: relative;
+      padding: 0;
+      overflow: visible;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(0, 200, 120, 0.2), transparent 28%),
+        radial-gradient(circle at 86% 16%, rgba(72, 120, 255, 0.16), transparent 30%),
+        linear-gradient(180deg, #0b1017 0%, #07090d 58%, #050608 100%);
+    }
+
+    .top-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 6;
+      width: 100%;
+      height: 54px;
+      margin: 0 auto;
+      padding: max(12px, env(safe-area-inset-top)) 18px 0;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      background: linear-gradient(180deg, rgba(3, 6, 10, 0.7), transparent);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-width: max-content;
+      color: #eef5fb;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 19px;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #04df85, #00b86d);
+      box-shadow: 0 10px 24px rgba(0, 200, 120, 0.28);
+    }
+
+    .brand-mark::before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 9px;
+      border-left: 11px solid #fff;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+    }
+
+    .top-tabs {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 0;
+      color: #9aa8b6;
+      font-size: 14px;
+    }
+
+    .top-tabs span,
+    .top-tabs button {
+      position: relative;
+      padding: 8px 0;
+    }
+
+    .top-tabs button {
+      border: 0;
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .top-tabs button:hover,
+    .top-tabs button:focus-visible {
+      color: #eef5fb;
+      outline: none;
+    }
+
+    .top-tabs .active {
+      color: #eef5fb;
+      font-weight: 700;
+    }
+
+    .top-tabs .active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 1px;
+      width: 18px;
+      height: 3px;
+      border-radius: 99px;
+      background: #00c878;
+      transform: translateX(-50%);
+    }
+
+    .vip-button {
+      margin-left: auto;
+      height: 34px;
+      padding: 0 16px;
+      border: 1px solid rgba(245, 200, 106, 0.45);
+      border-radius: 999px;
+      color: #241706;
+      background: linear-gradient(180deg, #ffe9a8, #d7a942);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .benefits-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 64px 18px 18px;
+      background: rgba(0, 0, 0, 0.38);
+      backdrop-filter: blur(7px);
+    }
+
+    .benefits-overlay.is-visible {
+      display: flex;
+    }
+
+    .benefits-panel {
+      width: min(360px, 100%);
+      padding: 18px;
+      border: 1px solid rgba(255, 232, 171, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(21, 26, 36, 0.98), rgba(9, 13, 19, 0.98));
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+    }
+
+    .benefits-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .benefits-head h2 {
+      margin: 0;
+      color: #eef5fb;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .benefits-close {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.84);
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+
+    .benefit-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .benefit-item {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      align-items: center;
+      min-height: 86px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .benefit-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #231305;
+      background: linear-gradient(180deg, #ffe9a8, #d7a942);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .benefit-icon.video-vip {
+      color: #03120b;
+      background: linear-gradient(135deg, #00c878, #42f3b1);
+    }
+
+    .benefit-title {
+      margin: 0 0 4px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .benefit-desc {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .benefit-expire {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: #ffe9a8;
+      background: rgba(245, 200, 106, 0.14);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .watch-area {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .video-shell {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      width: 100%;
+      border-radius: 0;
+      background: #000;
+      box-shadow: none;
+    }
+
+    .main-video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .video-shell::before,
+    .video-shell::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+    }
+
+    .video-shell::before {
+      top: 0;
+      height: 36%;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.62), transparent);
+    }
+
+    .video-shell::after {
+      bottom: 0;
+      height: 42%;
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.78), transparent);
+    }
+
+    .video-topline,
+    .player-controls,
+    .center-play {
+      position: absolute;
+      z-index: 2;
+    }
+
+    .video-topline {
+      left: 18px;
+      right: 18px;
+      top: 74px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      pointer-events: none;
+    }
+
+    .video-topline p,
+    .video-topline strong {
+      display: block;
+    }
+
+    .video-topline p {
+      margin: 0 0 3px;
+      color: #9aa8b6;
+      font-size: 12px;
+    }
+
+    .video-topline strong {
+      font-size: 17px;
+    }
+
+    .quality-pill {
+      align-self: flex-start;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      color: #dfffe9;
+      background: rgba(0, 0, 0, 0.36);
+      font-size: 12px;
+    }
+
+    .ad-countdown {
+      position: absolute;
+      top: 52px;
+      right: 18px;
+      z-index: 3;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.88);
+      background: rgba(0, 0, 0, 0.42);
+      font-size: 12px;
+      line-height: 1.2;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .ad-countdown.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .center-play {
+      left: 50%;
+      top: 50%;
+      width: 74px;
+      height: 74px;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.48);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .center-play span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      transform: translate(-50%, -50%);
+      border-left: 20px solid #fff;
+      border-top: 13px solid transparent;
+      border-bottom: 13px solid transparent;
+    }
+
+    .video-shell.is-playing .center-play {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.92);
+    }
+
+    .player-controls {
+      left: 18px;
+      right: 18px;
+      bottom: max(18px, env(safe-area-inset-bottom));
+    }
+
+    .timeline {
+      width: 100%;
+      height: 4px;
+      margin: 0 0 12px;
+      appearance: none;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #00c878 var(--progress, 0%), rgba(255, 255, 255, 0.26) var(--progress, 0%));
+      cursor: pointer;
+    }
+
+    .timeline::-webkit-slider-thumb {
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border: 3px solid #fff;
+      border-radius: 999px;
+      background: #00c878;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 38px;
+    }
+
+    .icon-button,
+    .text-button {
+      border: 0;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+    }
+
+    .play-toggle span {
+      display: block;
+      width: 0;
+      height: 0;
+      margin-left: 3px;
+      border-left: 12px solid #fff;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+
+    .video-shell.is-playing .play-toggle span {
+      width: 14px;
+      height: 16px;
+      margin-left: 0;
+      border: 0;
+      background: linear-gradient(90deg, #fff 0 5px, transparent 5px 9px, #fff 9px 14px);
+    }
+
+    .fullscreen-toggle span {
+      width: 17px;
+      height: 17px;
+      border: 2px solid #fff;
+      border-radius: 2px;
+    }
+
+    .text-button {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+    }
+
+    .text-button.active {
+      color: #041009;
+      background: #00c878;
+      font-weight: 700;
+    }
+
+    .time-readout {
+      min-width: 106px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+    }
+
+    .volume-control {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+    }
+
+    .volume-control input {
+      width: 92px;
+      accent-color: #00c878;
+    }
+
+    .episode-panel {
+      position: relative;
+      z-index: 2;
+      width: min(1180px, calc(100% - 36px));
+      min-height: 220px;
+      margin: 0 auto;
+      padding: 26px 22px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0 0 8px 8px;
+      background: linear-gradient(180deg, rgba(22, 29, 39, 0.98), rgba(11, 15, 21, 0.98));
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
+    }
+
+    .panel-kicker {
+      margin: 0 0 10px;
+      color: #16e39b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .episode-panel h1 {
+      margin: 0;
+      color: #eef5fb;
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .enter-selection {
+      display: grid;
+      place-items: center;
+      width: min(280px, 100%);
+      min-height: 44px;
+      margin-top: 26px;
+      border: 0;
+      border-radius: 999px;
+      color: #03120b;
+      background: linear-gradient(90deg, #00c878, #42f3b1);
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(0, 200, 120, 0.18);
+    }
+
+    .selection-screen {
+      padding: 42px 28px 38px;
+    }
+
+    .selection-wrap {
+      width: min(1120px, 100%);
+      min-height: calc(100vh - 80px);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 34px;
+    }
+
+    .selection-title {
+      margin: 0;
+      color: var(--paper);
+      font-family: "Songti SC", "STSong", serif;
+      font-size: clamp(30px, 4vw, 56px);
+      font-weight: 700;
+      line-height: 1.18;
+      text-align: center;
+      letter-spacing: 0;
+      text-shadow: 0 4px 22px rgba(0, 0, 0, 0.72);
+    }
+
+    .selection-subtitle {
+      margin: -18px 0 0;
+      color: rgba(255, 239, 203, 0.78);
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .character-card {
+      position: relative;
+      min-height: 480px;
+      padding: 0;
+      color: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(18, 15, 18, 0.66);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      overflow: hidden;
+      cursor: pointer;
+      isolation: isolate;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .character-card:hover,
+    .character-card:focus-visible {
+      transform: translateY(-6px);
+      border-color: rgba(255, 224, 143, 0.9);
+      box-shadow: 0 28px 82px rgba(0, 0, 0, 0.46), 0 0 0 3px rgba(217, 180, 95, 0.18);
+      outline: none;
+    }
+
+    .character-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(5, 5, 8, 0.48));
+    }
+
+    .character-art {
+      position: absolute;
+      inset: 0 0 90px;
+      width: 100%;
+      height: calc(100% - 90px);
+      object-fit: cover;
+      object-position: center top;
+      filter: saturate(1.03) contrast(1.02);
+      transform-origin: center top;
+    }
+
+    .character-stats {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 2;
+      display: grid;
+      gap: 5px;
+      min-width: 118px;
+      padding: 9px 10px;
+      border: 1px solid rgba(255, 232, 171, 0.32);
+      border-radius: 7px;
+      color: rgba(255, 246, 225, 0.92);
+      background: rgba(9, 7, 10, 0.52);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+      font-size: 12px;
+      line-height: 1.2;
+      text-align: left;
+      backdrop-filter: blur(8px);
+    }
+
+    .character-stats span {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .character-stats b {
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    .character-card[data-name="范闲"] .character-art {
+      transform: scale(1.08);
+    }
+
+    .character-card[data-name="五竹"] .character-art {
+      transform: scale(1.16);
+    }
+
+    .character-info {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 104px;
+      padding: 20px 16px 18px;
+      background: linear-gradient(180deg, rgba(10, 8, 10, 0.5), rgba(10, 8, 10, 0.94));
+      border-top: 1px solid rgba(255, 232, 171, 0.22);
+      text-align: center;
+    }
+
+    .character-name {
+      margin: 0;
+      color: var(--gold);
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 28px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .character-desc {
+      margin: 8px 0 0;
+      color: rgba(255, 246, 225, 0.74);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .dialogue-screen {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .dialogue-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(7, 6, 8, 0.42), rgba(9, 8, 12, 0.08) 42%, rgba(7, 6, 8, 0.34)),
+        url("demosource2-assets/橙光背景待定.png") center / cover;
+    }
+
+    .dialogue-layout {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      min-height: 100%;
+    }
+
+    .portrait-zone {
+      position: absolute;
+      left: clamp(6px, 3vw, 46px);
+      bottom: clamp(164px, 22vh, 230px);
+      z-index: 1;
+      width: min(34vw, 430px);
+      height: min(56vh, 590px);
+    }
+
+    .character-portrait {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+      filter: drop-shadow(0 26px 36px rgba(0, 0, 0, 0.55));
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .dialogue-panel {
+      position: absolute;
+      left: 50%;
+      bottom: max(-112px, -10vw);
+      z-index: 3;
+      width: min(96vw, 1180px);
+      aspect-ratio: 3 / 2;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .dialogue-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      pointer-events: none;
+    }
+
+    .speaker-name {
+      position: absolute;
+      left: 14%;
+      top: 45%;
+      z-index: 2;
+      display: inline-flex;
+      min-width: 108px;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 20px;
+      color: #fff7dd;
+      background: rgba(52, 33, 16, 0.82);
+      border: 1px solid rgba(130, 89, 39, 0.54);
+      border-radius: 5px;
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 21px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+      pointer-events: auto;
+    }
+
+    .dialogue-box {
+      position: absolute;
+      left: 13.5%;
+      right: 12%;
+      top: 52%;
+      bottom: 16%;
+      z-index: 2;
+      color: #3b2b16;
+      pointer-events: auto;
+    }
+
+    .dialogue-text {
+      min-height: 64px;
+      margin: 0;
+      font-size: clamp(18px, 2vw, 24px);
+      font-weight: 600;
+      line-height: 1.62;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34);
+    }
+
+    .dialogue-actions {
+      display: none;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+      transform: translate(5px, -40px);
+    }
+
+    .dialogue-actions.is-visible {
+      display: flex;
+    }
+
+    .tap-toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(28px, env(safe-area-inset-bottom));
+      z-index: 5;
+      min-width: 172px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255, 246, 218, 0.18);
+      border-radius: 999px;
+      color: rgba(255, 247, 225, 0.92);
+      background: rgba(22, 17, 14, 0.56);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(10px);
+      opacity: 0;
+      transition: opacity 180ms ease, transform 180ms ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .tap-toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .tap-guide {
+      position: absolute;
+      right: 10%;
+      bottom: 18%;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(75, 50, 18, 0.62);
+      font-size: 13px;
+      font-weight: 700;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .tap-guide.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .tap-icon {
+      width: 28px;
+      height: 28px;
+      color: rgba(75, 50, 18, 0.72);
+      filter: drop-shadow(0 4px 8px rgba(67, 38, 14, 0.16));
+      animation: fingerTap 1.05s ease-in-out infinite;
+    }
+
+    @keyframes fingerTap {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(4px) scale(0.96);
+      }
+    }
+
+    .choice-button,
+    .back-button {
+      min-height: 44px;
+      padding: 10px 20px;
+      border: 1px solid rgba(120, 82, 28, 0.42);
+      border-radius: 6px;
+      color: #4b3212;
+      background: rgba(255, 243, 210, 0.64);
+      cursor: pointer;
+      transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+    }
+
+    .choice-button:hover,
+    .choice-button:focus-visible,
+    .back-button:hover,
+    .back-button:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(118, 73, 20, 0.82);
+      background: rgba(255, 232, 168, 0.92);
+      outline: none;
+    }
+
+    .back-button {
+      position: absolute;
+      z-index: 2;
+      top: 24px;
+      left: 24px;
+      min-height: 40px;
+      padding-inline: 16px;
+      color: #fff2d4;
+      background: rgba(12, 10, 13, 0.58);
+      backdrop-filter: blur(8px);
+    }
+
+    @media (max-width: 980px) {
+      .episode-panel {
+        width: calc(100% - 24px);
+        min-height: auto;
+      }
+
+      .character-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .character-card {
+        min-height: 420px;
+      }
+
+      .dialogue-layout {
+        min-height: 100%;
+      }
+
+      .portrait-zone {
+        left: clamp(8px, 5vw, 46px);
+        bottom: clamp(200px, 29vh, 260px);
+        width: min(48vw, 350px);
+        height: min(42vh, 420px);
+        transform: none;
+      }
+
+      .character-portrait {
+        width: 100%;
+        height: 100%;
+      }
+
+      .dialogue-panel {
+        width: min(110vw, 940px);
+        bottom: max(-78px, -10vw);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .player-screen {
+        padding-inline: 0;
+      }
+
+      .top-bar {
+        gap: 12px;
+      }
+
+      .top-tabs {
+        gap: 12px;
+        overflow: auto;
+      }
+
+      .benefits-overlay {
+        align-items: flex-start;
+        padding: 58px 12px 12px;
+      }
+
+      .benefits-panel {
+        width: 100%;
+      }
+
+      .vip-button {
+        padding-inline: 12px;
+      }
+
+      .watch-area {
+        margin-top: 0;
+      }
+
+      .video-shell {
+        min-height: 100vh;
+        border-radius: 0;
+      }
+
+      .video-topline {
+        left: 12px;
+        right: 12px;
+        top: 10px;
+      }
+
+      .video-topline strong {
+        font-size: 14px;
+      }
+
+      .ad-countdown {
+        top: 42px;
+        right: 12px;
+      }
+
+      .center-play {
+        width: 58px;
+        height: 58px;
+      }
+
+      .center-play span {
+        border-left-width: 16px;
+        border-top-width: 10px;
+        border-bottom-width: 10px;
+      }
+
+      .player-controls {
+        left: 10px;
+        right: 10px;
+        bottom: 8px;
+      }
+
+      .control-row {
+        gap: 8px;
+      }
+
+      .time-readout {
+        min-width: 92px;
+        font-size: 12px;
+      }
+
+      .volume-control,
+      .text-button:nth-of-type(2) {
+        display: none;
+      }
+
+      .selection-screen {
+        padding: 30px 14px 24px;
+      }
+
+      .selection-wrap {
+        min-height: auto;
+        justify-content: flex-start;
+      }
+
+      .character-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .character-card {
+        min-height: 390px;
+      }
+
+      .dialogue-layout {
+        min-height: 100%;
+      }
+
+      .dialogue-box {
+        left: 14.5%;
+        right: 13%;
+        top: 51%;
+        bottom: 14%;
+      }
+
+      .speaker-name {
+        left: 15%;
+        top: 44%;
+        min-height: 38px;
+        font-size: 19px;
+      }
+
+      .choice-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="screen player-screen is-active" id="playerScreen">
+      <header class="top-bar">
+        <a class="brand" href="./character-selection-dialogue-new.html" aria-label="腾讯视频">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>腾讯视频</span>
+        </a>
+        <nav class="top-tabs" aria-label="频道">
+          <span class="active">精选</span>
+          <span>角色</span>
+          <button type="button" id="benefitsButton" aria-haspopup="dialog" aria-controls="benefitsOverlay">权益</button>
+        </nav>
+        <button class="vip-button" type="button">VIP</button>
+      </header>
+
+      <section class="watch-area">
+        <div class="video-shell" id="videoShell">
+          <video
+            id="mainVideo"
+            class="main-video"
+            src="demosource2-assets/主视频有声音.mp4"
+            preload="auto"
+            playsinline
+          ></video>
+
+          <button class="center-play" id="centerPlay" type="button" aria-label="播放">
+            <span aria-hidden="true"></span>
+          </button>
+
+          <div class="video-topline">
+            <div>
+              <p>影游共生</p>
+              <strong id="videoTitle">主视频</strong>
+            </div>
+            <span class="quality-pill">蓝光 1080P</span>
+          </div>
+
+          <div class="ad-countdown" id="adCountdown" aria-live="polite">还有3秒进入互动广告</div>
+
+          <div class="player-controls" aria-label="视频控制栏">
+            <input class="timeline" id="timeline" type="range" min="0" max="100" value="0" step="0.1" aria-label="播放进度">
+            <div class="control-row">
+              <button class="icon-button play-toggle" id="playToggle" type="button" aria-label="播放">
+                <span aria-hidden="true"></span>
+              </button>
+              <span class="time-readout"><span id="currentTime">00:00</span> / <span id="duration">00:00</span></span>
+              <button class="text-button" type="button">弹幕</button>
+              <button class="text-button active" type="button">高清</button>
+              <label class="volume-control" aria-label="音量">
+                <span>音量</span>
+                <input id="volume" type="range" min="0" max="1" value="0.85" step="0.01">
+              </label>
+              <button class="icon-button fullscreen-toggle" id="fullscreenToggle" type="button" aria-label="全屏">
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="episode-panel" aria-label="播放信息">
+          <p class="panel-kicker">正在播放</p>
+          <h1>庆余年</h1>
+          <button class="enter-selection" id="enterSelection" type="button">进入角色选择</button>
+        </aside>
+      </section>
+    </section>
+
+    <div class="benefits-overlay" id="benefitsOverlay" role="dialog" aria-modal="true" aria-labelledby="benefitsTitle">
+      <section class="benefits-panel">
+        <div class="benefits-head">
+          <h2 id="benefitsTitle">我的权益</h2>
+          <button class="benefits-close" id="benefitsClose" type="button" aria-label="关闭权益">×</button>
+        </div>
+        <div class="benefit-list">
+          <article class="benefit-item">
+            <div class="benefit-icon" aria-hidden="true">券</div>
+            <div>
+              <h3 class="benefit-title">京东互动好物券</h3>
+              <p class="benefit-desc">¥20 优惠券，购买剧集同款好物可用。</p>
+              <span class="benefit-expire">3天后到期</span>
+            </div>
+          </article>
+          <article class="benefit-item">
+            <div class="benefit-icon video-vip" aria-hidden="true">VIP</div>
+            <div>
+              <h3 class="benefit-title">腾讯视频会员</h3>
+              <p class="benefit-desc">7天会员体验权益，可用于观看会员内容。</p>
+              <span class="benefit-expire">7天后到期</span>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <section class="screen selection-screen" id="selectionScreen">
+      <div class="selection-wrap">
+        <h1 class="selection-title">诸位可挑选心仪角色</h1>
+        <p class="selection-subtitle">选择后进入对话邀请，再选择小游戏</p>
+
+        <div class="character-grid" aria-label="角色选择">
+          <button class="character-card" type="button" data-name="范闲" data-portrait="fanxian_transparent.png" data-line="既然来了，不妨陪我玩一局。赢了有彩头，输了也不亏。">
+            <img class="character-art" src="demosource2-assets/fanxian.png" alt="范闲">
+            <div class="character-stats" aria-label="角色数据">
+              <span>全服支持度 <b data-stat="support">--</b></span>
+              <span>我的等级 <b data-stat="level">--</b></span>
+            </div>
+            <div class="character-info">
+              <h2 class="character-name">范闲</h2>
+              <p class="character-desc">南庆户部尚书范建养子</p>
+            </div>
+          </button>
+
+          <button class="character-card" type="button" data-name="五竹" data-portrait="wuzhu_transparent.png" data-line="小游戏已准备。你来选择，我会陪你完成。">
+            <img class="character-art" src="demosource2-assets/wuzhu.png" alt="五竹">
+            <div class="character-stats" aria-label="角色数据">
+              <span>全服支持度 <b data-stat="support">--</b></span>
+              <span>我的等级 <b data-stat="level">--</b></span>
+            </div>
+            <div class="character-info">
+              <h2 class="character-name">五竹</h2>
+              <p class="character-desc">神秘蒙眼高手</p>
+            </div>
+          </button>
+
+          <button class="character-card" type="button" data-name="林婉儿" data-portrait="linwaner_transparent.png" data-line="今日难得清闲，不如选个小游戏，且当片刻欢喜。">
+            <img class="character-art" src="demosource2-assets/linwaner.png" alt="林婉儿">
+            <div class="character-stats" aria-label="角色数据">
+              <span>全服支持度 <b data-stat="support">--</b></span>
+              <span>我的等级 <b data-stat="level">--</b></span>
+            </div>
+            <div class="character-info">
+              <h2 class="character-name">林婉儿</h2>
+              <p class="character-desc">南庆宰相林若甫之女</p>
+            </div>
+          </button>
+
+          <button class="character-card" type="button" data-name="叶轻眉" data-portrait="yeqingmei_transparent.png" data-line="故事走到这里，该由你做一次选择了。来，挑一个小游戏。">
+            <img class="character-art" src="demosource2-assets/yeqingmei.png" alt="叶轻眉">
+            <div class="character-stats" aria-label="角色数据">
+              <span>全服支持度 <b data-stat="support">--</b></span>
+              <span>我的等级 <b data-stat="level">--</b></span>
+            </div>
+            <div class="character-info">
+              <h2 class="character-name">叶轻眉</h2>
+              <p class="character-desc">范闲之母，传奇人物</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen dialogue-screen" id="dialogueScreen" aria-live="polite">
+      <div class="dialogue-bg"></div>
+      <button class="back-button" type="button" id="backButton">返回选择</button>
+
+      <div class="dialogue-layout">
+        <div class="portrait-zone">
+          <img class="character-portrait" id="dialoguePortrait" src="demosource2-assets/fanxian_transparent.png" alt="">
+        </div>
+
+        <div class="dialogue-panel">
+          <img class="dialogue-frame" src="demosource2-assets/对话框.png" alt="">
+          <div class="speaker-name" id="speakerName">范闲</div>
+          <div class="dialogue-box">
+            <p class="dialogue-text" id="dialogueText">既然来了，不妨陪我玩一局。赢了有彩头，输了也不亏。</p>
+            <div class="dialogue-actions" id="dialogueActions">
+              <button class="choice-button" type="button" data-game="马车游戏">马车游戏</button>
+              <button class="choice-button" type="button" data-game="密库寻宝">密库寻宝</button>
+              <button class="choice-button" type="button" data-game="锦盒连开">锦盒连开</button>
+            </div>
+          </div>
+          <div class="tap-guide" id="tapGuide" aria-hidden="true">
+            <svg class="tap-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 11.5V5.75a1.25 1.25 0 0 1 2.5 0v5.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M11.5 10.5V9.25a1.25 1.25 0 0 1 2.5 0v2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14 10.9v-.65a1.25 1.25 0 0 1 2.5 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M16.5 12.25a1.25 1.25 0 0 1 2.5 0v2.25c0 3.1-2.05 5-5.1 5h-1.35a5 5 0 0 1-3.7-1.64L5.4 14.08a1.34 1.34 0 0 1 1.9-1.89L9 13.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>点击这里</span>
+          </div>
+        </div>
+      </div>
+      <div class="tap-toast" id="tapToast">点击屏幕继续</div>
+    </section>
+  </main>
+
+  <script>
+    const ASSET_ROOT = "demosource2-assets/";
+    const playerScreen = document.getElementById("playerScreen");
+    const selectionScreen = document.getElementById("selectionScreen");
+    const dialogueScreen = document.getElementById("dialogueScreen");
+    const videoShell = document.getElementById("videoShell");
+    const video = document.getElementById("mainVideo");
+    const videoTitle = document.getElementById("videoTitle");
+    const centerPlay = document.getElementById("centerPlay");
+    const playToggle = document.getElementById("playToggle");
+    const timeline = document.getElementById("timeline");
+    const currentTime = document.getElementById("currentTime");
+    const duration = document.getElementById("duration");
+    const adCountdown = document.getElementById("adCountdown");
+    const volume = document.getElementById("volume");
+    const fullscreenToggle = document.getElementById("fullscreenToggle");
+    const benefitsButton = document.getElementById("benefitsButton");
+    const benefitsOverlay = document.getElementById("benefitsOverlay");
+    const benefitsClose = document.getElementById("benefitsClose");
+    const enterSelection = document.getElementById("enterSelection");
+    const dialoguePortrait = document.getElementById("dialoguePortrait");
+    const speakerName = document.getElementById("speakerName");
+    const dialogueText = document.getElementById("dialogueText");
+    const tapToast = document.getElementById("tapToast");
+    const tapGuide = document.getElementById("tapGuide");
+    const dialogueActions = document.getElementById("dialogueActions");
+    const backButton = document.getElementById("backButton");
+    const choiceButtons = document.querySelectorAll(".choice-button");
+    const gratitudeLines = {
+      "范闲": "多谢选我，往后一同闯荡！",
+      "五竹": "多谢选择，我会相随。",
+      "叶轻眉": "幸得相知，自当不负所托。",
+      "林婉儿": "谢谢你愿意选择我呀～",
+    };
+    const gamePool = [
+      {
+        name: "马车游戏",
+        url: "snapshots/1马车游戏/realescort_game.html",
+      },
+      {
+        name: "密库寻宝",
+        url: "snapshots/2密库寻宝/treasure_hunt.html",
+      },
+      {
+        name: "锦盒连开",
+        url: "snapshots/3锦盒连开/index.html",
+      },
+      {
+        name: "监察院密档",
+        url: "snapshots/4监察院密档/qingyunian-puzzle-game.html",
+      },
+      {
+        name: "时空议价",
+        url: "snapshots/5时空议价/qingyunian-game.html",
+      },
+    ];
+    const transitionVideoSrc = "demosource2-assets/transition.mp4";
+    const interactiveBgmSrc = "demosource2-assets/bgm.mp3";
+    const transitionStartTime = 0.8;
+    const mainFadeDuration = 2;
+    const relationshipLevels = [
+      { name: "初识", weight: 70 },
+      { name: "相熟", weight: 15 },
+      { name: "倾心", weight: 8 },
+      { name: "知己", weight: 5 },
+      { name: "莫逆", weight: 2 },
+    ];
+    let dialogueLines = [];
+    let dialogueLineIndex = 0;
+    let activeLine = "";
+    let typeTimer = null;
+    let isTyping = false;
+    let tutorialGuideSeen = false;
+    let videoMode = "main";
+    let selectedVolume = Number(volume.value);
+    const interactiveBgm = new Audio(interactiveBgmSrc);
+    interactiveBgm.loop = true;
+    interactiveBgm.volume = 0;
+    let bgmFadeFrame = null;
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds)) return "00:00";
+
+      const totalSeconds = Math.max(0, Math.floor(seconds));
+      const minutes = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    function updateProgress() {
+      const percent = video.duration ? (video.currentTime / video.duration) * 100 : 0;
+      const remaining = video.duration ? video.duration - video.currentTime : Number.POSITIVE_INFINITY;
+      const countdown = Math.ceil(remaining);
+
+      timeline.value = String(percent);
+      timeline.style.setProperty("--progress", `${percent}%`);
+      currentTime.textContent = formatTime(video.currentTime);
+      if (videoMode === "main" && remaining > 0 && remaining <= 3) {
+        adCountdown.textContent = `还有${countdown}秒进入互动广告`;
+        adCountdown.classList.add("is-visible");
+      } else {
+        adCountdown.classList.remove("is-visible");
+      }
+
+      if (videoMode === "main" && Number.isFinite(remaining) && remaining <= mainFadeDuration) {
+        video.volume = Math.max(0, selectedVolume * (remaining / mainFadeDuration));
+      } else {
+        video.volume = selectedVolume;
+      }
+    }
+
+    function updatePlayState() {
+      const isPlaying = !video.paused && !video.ended;
+      videoShell.classList.toggle("is-playing", isPlaying);
+      centerPlay.setAttribute("aria-label", isPlaying ? "暂停" : "播放");
+      playToggle.setAttribute("aria-label", isPlaying ? "暂停" : "播放");
+    }
+
+    async function togglePlay() {
+      if (video.paused || video.ended) {
+        await video.play();
+      } else {
+        video.pause();
+      }
+    }
+
+    function seekToProgress() {
+      if (!video.duration) return;
+      video.currentTime = (Number(timeline.value) / 100) * video.duration;
+    }
+
+    async function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        await videoShell.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    }
+
+    function openBenefits() {
+      benefitsOverlay.classList.add("is-visible");
+      benefitsButton.setAttribute("aria-expanded", "true");
+    }
+
+    function closeBenefits() {
+      benefitsOverlay.classList.remove("is-visible");
+      benefitsButton.setAttribute("aria-expanded", "false");
+    }
+
+    function showSelection() {
+      video.pause();
+      adCountdown.classList.remove("is-visible");
+      playerScreen.classList.remove("is-active");
+      dialogueScreen.classList.remove("is-active");
+      selectionScreen.classList.add("is-active");
+      startInteractiveBgm();
+    }
+
+    function fadeInInteractiveBgm() {
+      if (bgmFadeFrame) cancelAnimationFrame(bgmFadeFrame);
+      const targetVolume = 0.38;
+      const fadeDuration = 1800;
+      const startedAt = performance.now();
+
+      function step(now) {
+        const progress = Math.min(1, (now - startedAt) / fadeDuration);
+        interactiveBgm.volume = targetVolume * progress;
+        if (progress < 1) bgmFadeFrame = requestAnimationFrame(step);
+      }
+
+      bgmFadeFrame = requestAnimationFrame(step);
+    }
+
+    async function startInteractiveBgm() {
+      if (!interactiveBgm.paused) return;
+      interactiveBgm.currentTime = 0;
+      interactiveBgm.volume = 0;
+      try {
+        await interactiveBgm.play();
+        fadeInInteractiveBgm();
+      } catch (error) {
+        document.addEventListener("pointerdown", startInteractiveBgm, { once: true });
+      }
+    }
+
+    async function playTransitionVideo() {
+      videoMode = "transition";
+      adCountdown.classList.remove("is-visible");
+      videoTitle.textContent = "互动广告转场";
+      timeline.value = "0";
+      timeline.style.setProperty("--progress", "0%");
+      currentTime.textContent = "00:00";
+      duration.textContent = "00:00";
+      video.src = transitionVideoSrc;
+      video.addEventListener(
+        "loadedmetadata",
+        () => {
+          video.currentTime = Math.min(transitionStartTime, Math.max(0, video.duration - 0.05));
+        },
+        { once: true }
+      );
+      video.load();
+      try {
+        await video.play();
+      } catch (error) {
+        updatePlayState();
+      }
+    }
+
+    function handleVideoEnded() {
+      if (videoMode === "main") {
+        playTransitionVideo();
+      } else {
+        showSelection();
+      }
+    }
+
+    function startInteractiveAd() {
+      if (videoMode === "transition") {
+        showSelection();
+      } else {
+        playTransitionVideo();
+      }
+    }
+
+    function pickGames() {
+      return [...gamePool]
+        .map((game) => ({ game, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .slice(0, 3)
+        .map(({ game }) => game);
+    }
+
+    function renderGameChoices() {
+      pickGames().forEach((game, index) => {
+        const button = choiceButtons[index];
+        button.dataset.game = game.name;
+        button.dataset.url = game.url;
+        button.textContent = game.name;
+      });
+    }
+
+    function renderCharacterStats() {
+      document.querySelectorAll(".character-card").forEach((card) => {
+        const support = Math.floor(Math.random() * 8001) + 2000;
+        const roll = Math.random() * 100;
+        let accumulated = 0;
+        const level = relationshipLevels.find((item) => {
+          accumulated += item.weight;
+          return roll < accumulated;
+        }).name;
+        card.querySelector('[data-stat="support"]').textContent = support.toLocaleString("zh-CN");
+        card.querySelector('[data-stat="level"]').textContent = level;
+      });
+    }
+
+    function clearTypeTimer() {
+      if (typeTimer) {
+        clearInterval(typeTimer);
+        typeTimer = null;
+      }
+    }
+
+    function setContinueHints(visible) {
+      tapToast.classList.toggle("is-visible", visible);
+      tapGuide.classList.toggle("is-visible", visible && !tutorialGuideSeen);
+    }
+
+    function finishTyping() {
+      clearTypeTimer();
+      isTyping = false;
+      dialogueText.textContent = activeLine;
+      const isLastLine = dialogueLineIndex >= dialogueLines.length - 1;
+      dialogueActions.classList.toggle("is-visible", isLastLine);
+      setContinueHints(!isLastLine);
+    }
+
+    function playDialogueLine(index) {
+      dialogueLineIndex = index;
+      activeLine = dialogueLines[dialogueLineIndex] || "";
+      clearTypeTimer();
+      isTyping = true;
+      dialogueText.textContent = "";
+      dialogueActions.classList.remove("is-visible");
+      setContinueHints(false);
+
+      let charIndex = 0;
+      typeTimer = setInterval(() => {
+        charIndex += 1;
+        dialogueText.textContent = activeLine.slice(0, charIndex);
+        if (charIndex >= activeLine.length) finishTyping();
+      }, 36);
+    }
+
+    function advanceDialogue() {
+      if (!dialogueScreen.classList.contains("is-active")) return;
+      if (isTyping) {
+        finishTyping();
+        return;
+      }
+      if (dialogueLineIndex < dialogueLines.length - 1) {
+        tutorialGuideSeen = true;
+        setContinueHints(false);
+        playDialogueLine(dialogueLineIndex + 1);
+      }
+    }
+
+    video.volume = selectedVolume;
+
+    video.addEventListener("loadedmetadata", () => {
+      duration.textContent = formatTime(video.duration);
+      updateProgress();
+    });
+
+    video.addEventListener("loadeddata", () => {
+      if (videoMode === "main" && video.currentTime === 0) {
+        video.currentTime = 0.05;
+      }
+      updateProgress();
+    });
+
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("play", updatePlayState);
+    video.addEventListener("pause", updatePlayState);
+    video.addEventListener("ended", handleVideoEnded);
+    video.addEventListener("click", togglePlay);
+
+    centerPlay.addEventListener("click", togglePlay);
+    playToggle.addEventListener("click", togglePlay);
+    timeline.addEventListener("input", seekToProgress);
+
+    volume.addEventListener("input", () => {
+      selectedVolume = Number(volume.value);
+      video.volume = selectedVolume;
+    });
+
+    fullscreenToggle.addEventListener("click", toggleFullscreen);
+    benefitsButton.addEventListener("click", openBenefits);
+    benefitsClose.addEventListener("click", closeBenefits);
+    benefitsOverlay.addEventListener("click", (event) => {
+      if (event.target === benefitsOverlay) closeBenefits();
+    });
+    enterSelection.addEventListener("click", startInteractiveAd);
+
+    document.querySelectorAll(".character-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const name = card.dataset.name;
+        localStorage.setItem("qingyunianSelectedRole", name);
+        speakerName.textContent = name;
+        dialogueLines = [gratitudeLines[name], card.dataset.line];
+        tutorialGuideSeen = false;
+        playDialogueLine(0);
+        dialoguePortrait.src = ASSET_ROOT + card.dataset.portrait;
+        dialoguePortrait.alt = name;
+        renderGameChoices();
+        selectionScreen.classList.remove("is-active");
+        dialogueScreen.classList.add("is-active");
+      });
+    });
+
+    backButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      clearTypeTimer();
+      isTyping = false;
+      setContinueHints(false);
+      dialogueActions.classList.remove("is-visible");
+      dialogueScreen.classList.remove("is-active");
+      selectionScreen.classList.add("is-active");
+    });
+
+    dialogueScreen.addEventListener("click", advanceDialogue);
+
+    choiceButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const matchedGame = gamePool.find((game) => game.name === button.dataset.game);
+        const url = matchedGame ? matchedGame.url : button.dataset.url;
+        if (url) {
+          localStorage.setItem("qingyunianSelectedRole", speakerName.textContent || "范闲");
+          window.location.assign(url);
+        }
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.code === "Escape" && benefitsOverlay.classList.contains("is-visible")) {
+        closeBenefits();
+        return;
+      }
+      if (event.code === "Space" && event.target === document.body && playerScreen.classList.contains("is-active")) {
+        event.preventDefault();
+        togglePlay();
+      }
+    });
+
+    updatePlayState();
+    renderCharacterStats();
+  </script>
+</body>
+</html>
