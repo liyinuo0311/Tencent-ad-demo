@@ -25,8 +25,8 @@
 
         #gameContainer {
             position: relative;
-            width: min(100vw, 420px);
-            height: min(100vh, 720px);
+            width: min(100vw, calc(100vh * 16 / 9));
+            height: min(100vh, calc(100vw * 9 / 16));
             background: #141725;
             overflow: hidden;
             box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48);
@@ -57,8 +57,8 @@
         }
 
         #videoLayer {
-            width: min(100vw, 420px);
-            height: min(100vh, 720px);
+            width: min(100vw, calc(100vh * 16 / 9));
+            height: min(100vh, calc(100vw * 9 / 16));
             display: none;
             align-items: center;
             justify-content: center;
@@ -112,6 +112,40 @@
             pointer-events: none;
         }
 
+        .rolePortraitWrap {
+            position: absolute;
+            left: clamp(14px, 2.2vw, 30px);
+            bottom: clamp(8px, 1.4vw, 18px);
+            width: clamp(116px, 13vw, 188px);
+            height: clamp(150px, 18vw, 260px);
+            z-index: 7;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            pointer-events: none;
+            filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.42));
+        }
+
+        .rolePortraitWrap::after {
+            content: "";
+            position: absolute;
+            left: 12%;
+            right: 12%;
+            bottom: 2%;
+            height: 16%;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.42), transparent 72%);
+            z-index: -1;
+        }
+
+        .rolePortrait {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center bottom;
+        }
+
         #hud {
             position: absolute;
             top: 14px;
@@ -136,12 +170,12 @@
         .statPanel {
             position: relative;
             width: 92px;
-            height: 46px;
+            height: 92px;
             min-width: 92px;
-            padding: 7px 10px 6px;
+            padding: 22px 18px 20px;
             border: 0;
             border-radius: 0;
-            background: url("icon_6.png?v=20260525-2107") center / 100% 100% no-repeat;
+            background: url("frame.png") center / contain no-repeat;
             box-shadow: none;
             backdrop-filter: none;
             display: flex;
@@ -153,7 +187,7 @@
         .statPanel .hudLabel {
             color: rgba(255, 232, 162, 0.8);
             font-family: "Songti SC", "STSong", serif;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1;
             margin: 0 0 2px;
@@ -163,7 +197,7 @@
         .statPanel .hudValue {
             color: #ffd875;
             font-family: Georgia, "Times New Roman", "PingFang SC", serif;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 900;
             line-height: 1;
             text-shadow:
@@ -174,9 +208,9 @@
 
         .timerPanel {
             position: relative;
-            width: 96px;
-            height: 108px;
-            min-width: 96px;
+            width: 130px;
+            height: 54px;
+            min-width: 130px;
             padding: 0;
             border: 0;
             background: transparent;
@@ -190,12 +224,12 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: url("icon_1.png") center / contain no-repeat;
+            background: url("time.png") center / contain no-repeat;
             filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.42));
         }
 
         .timerPanel::after {
-            content: "";
+            content: none;
             position: absolute;
             width: 46px;
             height: 46px;
@@ -306,37 +340,21 @@
 
         .startScroll {
             position: relative;
-            width: min(328px, calc(100vw - 44px));
-            min-height: 454px;
-            padding: 64px 34px 42px;
+            width: min(50vw, 470px);
+            aspect-ratio: 1187 / 1176;
+            min-height: 0;
+            padding: 0;
             color: #4b2817;
-            background:
-                radial-gradient(circle at 50% 18%, rgba(255, 246, 209, 0.82), transparent 38%),
-                linear-gradient(90deg, rgba(127, 78, 35, 0.16), transparent 12%, transparent 88%, rgba(127, 78, 35, 0.16)),
-                linear-gradient(180deg, #efe0bd 0%, #fbf0ce 18%, #ead6aa 100%);
-            border: 1px solid rgba(118, 70, 28, 0.52);
-            border-radius: 8px;
-            box-shadow:
-                inset 0 0 26px rgba(115, 67, 25, 0.18),
-                inset 0 0 0 2px rgba(255, 247, 205, 0.38),
-                0 22px 44px rgba(0, 0, 0, 0.42);
+            background: url("intro_frame.png") center / contain no-repeat;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            text-align: center;
         }
 
         .startScroll::before,
         .startScroll::after {
-            content: "";
-            position: absolute;
-            left: 50%;
-            width: calc(100% + 30px);
-            height: 28px;
-            transform: translateX(-50%);
-            border-radius: 999px;
-            background:
-                linear-gradient(90deg, #4e2413 0%, #ba7b37 14%, #f3d17b 34%, #865021 62%, #3b1c10 100%);
-            box-shadow:
-                inset 0 3px 6px rgba(255, 236, 171, 0.36),
-                inset 0 -5px 8px rgba(51, 22, 10, 0.46),
-                0 6px 12px rgba(0, 0, 0, 0.28);
+            content: none;
         }
 
         .startScroll::before {
@@ -348,23 +366,11 @@
         }
 
         .scrollTexture {
-            position: absolute;
-            inset: 28px 20px;
-            pointer-events: none;
-            opacity: 0.34;
-            background:
-                repeating-linear-gradient(98deg, rgba(86, 47, 20, 0.08) 0 1px, transparent 1px 14px),
-                radial-gradient(circle at 20% 24%, rgba(117, 67, 25, 0.12), transparent 15%),
-                radial-gradient(circle at 76% 72%, rgba(117, 67, 25, 0.1), transparent 18%);
-            mix-blend-mode: multiply;
+            display: none;
         }
 
         .lantern {
-            position: absolute;
-            top: 34px;
-            width: 42px;
-            height: 72px;
-            filter: drop-shadow(0 6px 10px rgba(73, 18, 8, 0.3));
+            display: none;
         }
 
         .lantern.left {
@@ -435,11 +441,15 @@
         }
 
         .startTitle {
-            position: relative;
-            margin: 0 0 22px;
+            position: absolute;
+            left: 53%;
+            top: 26%;
+            width: 62%;
+            margin: 0;
+            transform: translateX(-50%);
             color: #4a2111;
             font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
-            font-size: 42px;
+            font-size: clamp(26px, 3vw, 36px);
             font-weight: 900;
             line-height: 1;
             letter-spacing: 3px;
@@ -458,15 +468,18 @@
         }
 
         .missionText {
-            position: relative;
-            margin: 0 auto 28px;
-            max-width: 240px;
+            position: absolute;
+            left: 53%;
+            top: 38%;
+            width: 62%;
+            margin: 0;
+            transform: translateX(-50%);
             color: #57331f;
             font-family: "Songti SC", "STSong", "SimSun", serif;
-            font-size: 17px;
+            font-size: clamp(14px, 1.5vw, 17px);
             font-weight: 700;
             line-height: 1.9;
-            text-align: left;
+            text-align: center;
             text-shadow: 0 1px 0 rgba(255, 246, 213, 0.72);
         }
 
@@ -483,7 +496,11 @@
         }
 
         #startScreen .btn {
-            position: relative;
+            position: absolute;
+            left: 53%;
+            bottom: 8%;
+            margin: 0;
+            transform: translateX(-50%);
             min-width: 172px;
             min-height: 50px;
             border: 1px solid #d8b46b;
@@ -503,8 +520,19 @@
         }
 
         #startScreen .btn:hover {
-            transform: translateY(-1px);
+            transform: translateX(-50%) translateY(-1px);
             filter: brightness(1.08);
+        }
+
+        @media (max-height: 640px) {
+            .startScroll {
+                width: min(42vw, 400px);
+            }
+
+            .missionText {
+                line-height: 1.65;
+                margin-bottom: 14px;
+            }
         }
 
         .victoryPanel {
@@ -862,6 +890,381 @@
             line-height: 1.7;
         }
 
+        #victoryScreen,
+        #failureScreen {
+            padding: clamp(18px, 3vw, 42px);
+            background:
+                linear-gradient(180deg, rgba(4, 7, 12, 0.18), rgba(2, 3, 6, 0.34)),
+                url("settlement_bg.png") center / cover no-repeat;
+        }
+
+        .victoryPanel,
+        .failurePanel {
+            position: relative;
+            width: min(86vw, 1080px);
+            height: min(calc(86vw * 941 / 1415), calc(1080px * 941 / 1415));
+            aspect-ratio: 1415 / 941;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            color: #4a2514;
+            background: url("big_frame_clean.PNG") center / contain no-repeat;
+            box-shadow: none;
+        }
+
+        .victoryPanel::before,
+        .failurePanel::before {
+            content: none;
+        }
+
+        .victoryPanel::after,
+        .failurePanel::after {
+            content: none;
+        }
+
+        .victoryCorner,
+        .couponFrame,
+        .adOverlay {
+            display: none;
+        }
+
+        .victoryTitle,
+        .failureTitle {
+            position: absolute;
+            left: 23%;
+            top: 29.8%;
+            width: 54%;
+            margin: 0;
+            color: #552612;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: clamp(22px, 3.2vw, 40px);
+            line-height: 1.1;
+            letter-spacing: 0;
+            text-align: center;
+            text-shadow: 0 2px 0 rgba(255, 236, 188, 0.78);
+        }
+
+        .resultStamp {
+            position: absolute;
+            right: 15.5%;
+            top: 26.5%;
+            width: 13%;
+            pointer-events: none;
+            opacity: 0.94;
+            mix-blend-mode: multiply;
+        }
+
+        .rewardLabel {
+            margin: 0;
+            font-size: 0;
+        }
+
+        #victoryScreen .score,
+        .failureCopy {
+            position: absolute;
+            left: 24%;
+            top: 38.8%;
+            width: 52%;
+            margin: 0;
+            color: #5c331c;
+            font-family: "Songti SC", "STSong", "SimSun", serif;
+            font-size: clamp(14px, 1.55vw, 20px);
+            font-weight: 800;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        .settlementRows {
+            display: grid;
+            position: absolute;
+            left: 23%;
+            top: 56%;
+            width: 54%;
+            gap: clamp(8px, 1.3vh, 14px);
+            margin: 0;
+        }
+
+        .settlementRow {
+            min-height: clamp(42px, 7vh, 64px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent;
+            color: #4d2514;
+            font-family: "Songti SC", "STSong", "SimSun", serif;
+            font-size: clamp(16px, 2.1vw, 28px);
+            font-weight: 900;
+            text-shadow: 0 1px 0 rgba(255, 236, 190, 0.76);
+        }
+
+        .productShowcase {
+            position: absolute;
+            left: 26%;
+            top: 62%;
+            width: 48%;
+            height: 18%;
+            display: grid;
+            grid-template-columns: 1.55fr 1fr 1fr;
+            gap: clamp(10px, 1.6vw, 22px);
+            align-items: end;
+            pointer-events: auto;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .productRewardTitle {
+            position: absolute;
+            left: 23%;
+            top: 52%;
+            width: 54%;
+            color: #4d2514;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: clamp(22px, 3.4vw, 44px);
+            font-weight: 900;
+            line-height: 1;
+            text-align: center;
+            text-shadow: 0 2px 0 rgba(255, 236, 190, 0.76);
+            pointer-events: none;
+        }
+
+        .productItem {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .productItem + .productItem::before {
+            content: "";
+            position: absolute;
+            left: calc(-0.5 * clamp(10px, 1.6vw, 22px));
+            top: 18%;
+            bottom: 8%;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(129, 86, 40, 0.48), transparent);
+        }
+
+        .productItem img {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 8px rgba(82, 44, 18, 0.22));
+        }
+
+        .productEmoji {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: clamp(50px, 7vw, 110px);
+            line-height: 1;
+            filter: drop-shadow(0 10px 8px rgba(82, 44, 18, 0.22));
+        }
+
+        .productItem.primary img {
+            max-width: 112%;
+            max-height: 108%;
+        }
+
+        .productItem.primary .productEmoji {
+            font-size: clamp(62px, 8.4vw, 128px);
+        }
+
+        .productItem.secondary {
+            align-items: center;
+            padding: 6% 3%;
+        }
+
+        #victoryScreen .settlementRows {
+            display: none;
+        }
+
+        #failureScreen .failureTitle {
+            color: #f4ddb3;
+            font-size: clamp(22px, 3vw, 38px);
+            text-shadow: 0 2px 0 rgba(74, 31, 15, 0.72);
+        }
+
+        #failureScreen .failureCopy {
+            color: rgba(64, 30, 14, 0.78);
+            font-size: clamp(12px, 1.35vw, 18px);
+        }
+
+        .failureMainTitle {
+            position: absolute;
+            left: 23%;
+            top: 49.2%;
+            width: 54%;
+            margin: 0;
+            color: #4d2514;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: clamp(24px, 3.7vw, 48px);
+            font-weight: 900;
+            line-height: 1;
+            text-align: center;
+            text-shadow: 0 2px 0 rgba(255, 236, 190, 0.76);
+            pointer-events: none;
+        }
+
+        .failureSubText {
+            position: absolute;
+            left: 23%;
+            top: 57%;
+            width: 54%;
+            margin: 0;
+            color: #5c331c;
+            font-family: "Songti SC", "STSong", "SimSun", serif;
+            font-size: clamp(14px, 1.8vw, 24px);
+            font-weight: 800;
+            line-height: 1;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .failureProducts {
+            position: absolute;
+            left: 25%;
+            top: 62.2%;
+            width: 50%;
+            height: 16.5%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: clamp(10px, 1.4vw, 20px);
+            align-items: end;
+            pointer-events: auto;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .failureProduct {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: clamp(46px, 6.2vw, 92px);
+            line-height: 1;
+            filter: drop-shadow(0 8px 7px rgba(82, 44, 18, 0.22));
+        }
+
+        #failureScreen .settlementRows {
+            display: none;
+        }
+
+        .settlementActionBar {
+            position: absolute;
+            left: 50%;
+            top: 82%;
+            width: 48%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            gap: clamp(12px, 1.8vw, 24px);
+            z-index: 2;
+        }
+
+        .settlementAction {
+            min-width: min(20vw, 240px);
+            min-height: clamp(34px, 4.8vw, 52px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 clamp(18px, 2.2vw, 30px);
+            border: 1px solid rgba(114, 62, 22, 0.72);
+            border-radius: 6px;
+            background: linear-gradient(180deg, #f9df95 0%, #d59536 48%, #8d4a18 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 247, 202, 0.72), 0 8px 14px rgba(88, 44, 13, 0.24);
+            color: #4a210d;
+            font-family: "STKaiti", "Kaiti SC", "KaiTi", "Songti SC", serif;
+            font-size: clamp(14px, 1.55vw, 21px);
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-decoration: none;
+            text-shadow: 0 1px 0 rgba(255, 238, 176, 0.65);
+            cursor: pointer;
+        }
+
+        .settlementBackBtn {
+            position: absolute;
+            left: 50%;
+            bottom: -6%;
+            width: min(48vw, 520px);
+            aspect-ratio: 1832 / 141;
+            min-width: 0;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            transform: translateX(-50%);
+            border: 0;
+            border-radius: 0;
+            background: url("back.png") center / contain no-repeat;
+            color: transparent;
+            font-size: 1px;
+            box-shadow: none;
+            text-shadow: none;
+            pointer-events: auto;
+            cursor: default;
+        }
+
+        #successJdLink.visible,
+        .failurePanel .jdLink.visible {
+            display: block;
+        }
+
+        .claimStatus {
+            position: absolute;
+            left: 50%;
+            bottom: 42px;
+            transform: translateX(-50%);
+            color: #7b2414;
+            text-shadow: 0 1px 0 rgba(255, 236, 188, 0.78);
+        }
+
+        @media (max-width: 760px) {
+            .victoryPanel,
+            .failurePanel {
+                width: min(92vw, 680px);
+            }
+
+            .resultStamp {
+                right: 13%;
+                top: 25%;
+                width: 15%;
+            }
+
+            .settlementRow {
+                min-height: 54px;
+            }
+
+            .productShowcase {
+                left: 24%;
+                top: 62%;
+                width: 52%;
+                height: 21%;
+            }
+
+            .productRewardTitle {
+                left: 22%;
+                top: 52%;
+                width: 56%;
+            }
+
+            .failureMainTitle,
+            .failureSubText {
+                left: 22%;
+                width: 56%;
+            }
+
+            .failureProducts {
+                left: 23%;
+                width: 54%;
+            }
+        }
+
         h1 {
             font-size: 30px;
             line-height: 1.18;
@@ -950,6 +1353,9 @@
                     <span class="hudValue" id="threatValue">1</span>
                 </div>
             </div>
+            <div class="rolePortraitWrap" aria-hidden="true">
+                <img class="rolePortrait" id="rolePortrait" src="fanxian_transparent.png" alt="">
+            </div>
             <div id="dragHint">拖动马车左右移动，避开飞来的箭</div>
         </div>
         <div id="startScreen">
@@ -974,29 +1380,65 @@
                 <span class="victoryCorner tr"></span>
                 <span class="victoryCorner bl"></span>
                 <span class="victoryCorner br"></span>
-                <h1 class="victoryTitle">密令已送达</h1>
+                <img class="resultStamp" src="success.png" alt="成功">
+                <h1 class="victoryTitle" id="victoryTitle">范闲阵营 +100积分</h1>
                 <p class="rewardLabel">奖励获得</p>
                 <p class="score" id="finalStats">马车顺利抵达目的地。</p>
+                <div class="settlementRows">
+                    <div class="settlementRow">你获得品牌优惠券</div>
+                    <div class="settlementRow">已记录本次互动数据</div>
+                </div>
+                <p class="productRewardTitle">恭喜你！获得品牌优惠券</p>
+                <a class="productShowcase" href="jd_product.html" onclick="return goToJdProduct(event)" aria-label="前往京东商品页">
+                    <div class="productItem primary">
+                        <span class="productEmoji" aria-label="商品样图">🎁</span>
+                    </div>
+                    <div class="productItem secondary">
+                        <span class="productEmoji" aria-label="商品样图一">🧴</span>
+                    </div>
+                    <div class="productItem secondary">
+                        <span class="productEmoji" aria-label="商品样图二">🛍️</span>
+                    </div>
+                </a>
                 <div class="couponFrame">
                     <div class="couponIcon">
                         <span class="couponMark">券</span>
                     </div>
                 </div>
-                <button class="btn" type="button" id="claimRewardBtn" onclick="claimReward()">领取奖励</button>
+                <div class="settlementActionBar">
+                    <a class="settlementAction" id="successJdAction" href="jd_product.html" onclick="return goToJdProduct(event)">跳转京东获取同款</a>
+                </div>
+                <button class="settlementBackBtn" type="button" id="claimRewardBtn" onclick="returnToVideo()" aria-label="返回继续观看"></button>
                 <p class="claimStatus" id="claimStatus">领取成功</p>
                 <a class="jdLink" id="successJdLink" href="#">前往京东领取同款好礼</a>
             </div>
         </div>
         <div id="failureScreen">
             <div class="failurePanel">
-                <h1 class="failureTitle">护送失败</h1>
+                <img class="resultStamp" src="fail.png" alt="失败">
+                <h1 class="failureTitle">很遗憾，未能为阵营加分</h1>
                 <p class="failureCopy" id="failureStats">密令受损，敌手已追至京城。</p>
+                <div class="settlementRows">
+                    <div class="settlementRow">互动挑战未完成</div>
+                    <div class="settlementRow">已记录本次互动数据</div>
+                </div>
+                <p class="failureMainTitle">密令虽失，补给仍至</p>
+                <p class="failureSubText">即刻前往京东选购剧集同款推荐</p>
+                <a class="failureProducts" href="jd_product.html" onclick="return goToJdProduct(event)" aria-label="前往京东商品页">
+                    <span class="failureProduct" aria-label="推荐商品一">🎁</span>
+                    <span class="failureProduct" aria-label="推荐商品二">🧴</span>
+                    <span class="failureProduct" aria-label="推荐商品三">🏺</span>
+                    <span class="failureProduct" aria-label="推荐商品四">🛍️</span>
+                </a>
                 <div class="adOverlay" id="failureAd">
                     <button class="adClose" type="button" onclick="closeFailureAd()" aria-label="关闭广告">×</button>
                     <div class="adBadge">京东好物</div>
                     <p class="adText">密令虽失，补给仍至。即刻前往京东选购剧集同款推荐。</p>
                 </div>
-                <a class="jdLink" id="failureJdLink" href="#">前往京东购买补给</a>
+                <div class="settlementActionBar">
+                    <a class="settlementAction" id="failureJdAction" href="jd_product.html" onclick="return goToJdProduct(event)">跳转京东获取同款</a>
+                </div>
+                <button class="settlementBackBtn visible" type="button" id="failureJdLink" onclick="returnToVideo()" aria-label="返回继续观看"></button>
             </div>
         </div>
     </div>
@@ -1019,8 +1461,41 @@
         const GAME_DURATION = 10;
         const FAILURE_HIT_LIMIT = 4;
         const JD_PRODUCT_URL = 'jd_product.html';
+        const ROLE_PORTRAITS = {
+            '范闲': 'fanxian_transparent.png',
+            '五竹': 'wuzhu_transparent.png',
+            '林婉儿': 'linwaner_transparent.png',
+            '叶轻眉': 'yeqingmei_transparent.png'
+        };
         let rewardLinkTimer = null;
         let failureLinkTimer = null;
+
+        function goToJdProduct(event) {
+            if (event) event.preventDefault();
+            window.location.assign(JD_PRODUCT_URL);
+            return false;
+        }
+
+        function getSelectedRoleName() {
+            return localStorage.getItem('qingyunianSelectedRole') || '范闲';
+        }
+
+        function applySelectedRole() {
+            const roleName = getSelectedRoleName();
+            const title = document.getElementById('victoryTitle');
+            const portrait = document.getElementById('rolePortrait');
+            if (title) title.textContent = roleName + '阵营 +100积分';
+            if (portrait) {
+                portrait.src = ROLE_PORTRAITS[roleName] || ROLE_PORTRAITS['范闲'];
+                portrait.alt = roleName;
+            }
+        }
+
+        function getReturnVideoUrl() {
+            return window.location.pathname.includes('/snapshots/')
+                ? '../../index.html'
+                : '../character-selection-dialogue-new.html';
+        }
 
         const carriageImage = new Image();
         carriageImage.src = 'carriage.PNG';
@@ -1031,13 +1506,13 @@
         };
 
         const arrowImage = new Image();
-        arrowImage.src = 'arrow_extracted.png';
+        arrowImage.src = 'arrow.png';
         arrowImage.onload = () => {
             drawStartPreview();
         };
 
         const backgroundImage = new Image();
-        backgroundImage.src = 'bg_road.png';
+        backgroundImage.src = 'bg.png';
         backgroundImage.onload = () => {
             drawStartPreview();
         };
@@ -1088,13 +1563,13 @@
             const w = canvas.logicalWidth || container.clientWidth;
             const h = canvas.logicalHeight || container.clientHeight;
             const scale = Math.max(0.82, Math.min(1.08, w / 400));
-            carriage.width = 96 * scale;
-            carriage.height = 114 * scale;
-            carriage.y = h - carriage.height * 0.62 - 28;
+            carriage.width = 110 * scale;
+            carriage.height = 158 * scale;
+            carriage.y = h - carriage.height * 0.56 - 20;
             if (!carriage.x) {
                 carriage.x = w / 2;
-                carriage.targetX = w / 2;
             }
+            if (!carriage.targetX) carriage.targetX = w / 2;
             carriage.x = clamp(carriage.x, carriage.width * 0.42, w - carriage.width * 0.42);
             carriage.targetX = clamp(carriage.targetX, carriage.width * 0.42, w - carriage.width * 0.42);
         }
@@ -1145,16 +1620,16 @@
                 const side = Math.random();
                 const targetX = carriage.x + (Math.random() - 0.5) * (95 + progress * 70);
                 const targetY = carriage.y - carriage.height * 0.08 + (Math.random() - 0.5) * 62;
-                const speed = 230 + Math.random() * 70 + progress * 95;
+                const speed = 285 + Math.random() * 90 + progress * 125;
 
                 if (side < 0.55) {
                     this.x = Math.random() * w;
-                    this.y = -42;
+                    this.y = -72;
                 } else if (side < 0.78) {
-                    this.x = -42;
+                    this.x = -72;
                     this.y = Math.random() * h * 0.58 + 20;
                 } else {
-                    this.x = w + 42;
+                    this.x = w + 72;
                     this.y = Math.random() * h * 0.58 + 20;
                 }
 
@@ -1164,10 +1639,9 @@
                 this.vx = dx / length * speed;
                 this.vy = dy / length * speed;
                 this.angle = Math.atan2(this.vy, this.vx);
-                this.length = 46 + Math.random() * 10;
-                this.radius = 10;
-                this.spin = (Math.random() - 0.5) * 0.08;
-                this.glow = 0.4 + Math.random() * 0.4;
+                this.length = 76 + Math.random() * 18;
+                this.radius = 16;
+                this.spin = (Math.random() - 0.5) * 0.045;
             }
 
             update(dt) {
@@ -1180,21 +1654,10 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                ctx.globalAlpha = this.glow;
-                const aura = ctx.createLinearGradient(-this.length * 0.5, 0, this.length * 0.5, 0);
-                aura.addColorStop(0, 'rgba(118, 198, 255, 0)');
-                aura.addColorStop(0.55, 'rgba(118, 198, 255, 0.42)');
-                aura.addColorStop(1, 'rgba(255, 245, 185, 0.16)');
-                ctx.strokeStyle = aura;
-                ctx.lineWidth = 10;
-                ctx.beginPath();
-                ctx.moveTo(-this.length * 0.65, 0);
-                ctx.lineTo(this.length * 0.48, 0);
-                ctx.stroke();
 
                 ctx.globalAlpha = 1;
                 if (arrowImage.complete) {
-                    const size = this.length * 1.25;
+                    const size = this.length * 1.32;
                     ctx.rotate(Math.PI / 4);
                     ctx.drawImage(arrowImage, -size / 2, -size / 2, size, size);
                 } else {
@@ -1214,7 +1677,7 @@
             isOffScreen() {
                 const w = canvas.logicalWidth;
                 const h = canvas.logicalHeight;
-                return this.x < -90 || this.x > w + 90 || this.y < -90 || this.y > h + 90;
+                return this.x < -150 || this.x > w + 150 || this.y < -150 || this.y > h + 150;
             }
         }
 
@@ -1493,7 +1956,7 @@
             document.getElementById('gameContainer').style.display = 'block';
             document.getElementById('videoLayer').classList.remove('visible');
             document.getElementById('claimRewardBtn').disabled = false;
-            document.getElementById('claimRewardBtn').textContent = '领取奖励';
+            document.getElementById('claimRewardBtn').textContent = '返回继续观看';
             dragHint.classList.remove('visible');
 
             requestAnimationFrame(gameLoop);
@@ -1507,10 +1970,7 @@
             if (failed) {
                 document.getElementById('failureStats').textContent = '被击中 ' + hitCount + ' 次，密令未能安全送达。';
                 document.getElementById('failureScreen').style.display = 'flex';
-                failureLinkTimer = setTimeout(() => {
-                    document.getElementById('failureJdLink').classList.add('visible');
-                    document.getElementById('returnVideoBtn').classList.add('visible');
-                }, 3000);
+                document.getElementById('failureJdLink').classList.add('visible');
                 return;
             }
 
@@ -1529,7 +1989,6 @@
             if (rewardLinkTimer) clearTimeout(rewardLinkTimer);
             rewardLinkTimer = setTimeout(() => {
                 document.getElementById('successJdLink').classList.add('visible');
-                document.getElementById('returnVideoBtn').classList.add('visible');
             }, 3000);
         }
 
@@ -1539,7 +1998,7 @@
 
         function returnToVideo() {
             if (window.stopInteractiveBgm) window.stopInteractiveBgm();
-            window.location.assign('../character-selection-dialogue-new.html');
+            window.location.assign(getReturnVideoUrl());
         }
 
         function clearRewardTimers() {
@@ -1550,7 +2009,7 @@
         }
 
         document.getElementById('successJdLink').href = JD_PRODUCT_URL;
-        document.getElementById('failureJdLink').href = JD_PRODUCT_URL;
+        applySelectedRole();
         window.addEventListener('resize', resizeCanvas);
         document.addEventListener('touchmove', (event) => {
             if (event.target === canvas) event.preventDefault();
